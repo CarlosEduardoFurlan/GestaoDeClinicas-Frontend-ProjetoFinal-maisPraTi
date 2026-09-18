@@ -1,1 +1,0 @@
-# GestaoDeClinicas-Frontend-ProjetoFinal-maisPraTi
