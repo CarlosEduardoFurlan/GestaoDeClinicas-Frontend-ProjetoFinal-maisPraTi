@@ -1,0 +1,6 @@
+{
+  "name": "Clinic ERP Design System",
+  "description": "A solid, scalable frontend foundation and Design System for a Clinic ERP.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
