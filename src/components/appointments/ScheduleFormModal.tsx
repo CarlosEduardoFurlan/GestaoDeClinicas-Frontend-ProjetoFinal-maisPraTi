@@ -9,9 +9,10 @@ import { useToast } from '../../contexts/ToastContext';
 import { ProfessionalService } from '../../services/professional.service';
 import { ScheduleService } from '../../services/schedule.service';
 import { errorDescription, normalizeApiError } from '../../lib/api-error';
+import type { ScheduleResponse } from '../../types';
 
 export function ScheduleFormModal({ initialDate, onClose, onSaved, refresh }: {
-  initialDate: string; onClose: () => void; onSaved: () => void; refresh: () => Promise<boolean>;
+  initialDate: string; onClose: () => void; onSaved: (saved: ScheduleResponse) => void; refresh: () => Promise<boolean>;
 }) {
   const { user } = useAuth();
   const admin = user?.profile === 'ADMIN';
@@ -34,9 +35,9 @@ export function ScheduleFormModal({ initialDate, onClose, onSaved, refresh }: {
     const controller = new AbortController(); operation.current = controller;
     setPending(true); setFormError(null);
     try {
-      await ScheduleService.create({ professionalId: id, date, time }, controller.signal);
+      const saved = await ScheduleService.create({ professionalId: id, date, time }, controller.signal);
       if (controller.signal.aborted) return;
-      success('Horário adicionado'); onSaved();
+      success('Horário adicionado'); onSaved(saved);
     } catch (cause) {
       if (!controller.signal.aborted) {
         const message = errorDescription(cause); setFormError(message); error('Não foi possível adicionar horário', message);

@@ -79,8 +79,8 @@ export function AppointmentsPage() {
       </>}
     </div>
     <p className="text-xs text-slate-500 px-4">Disponível: horário aberto sem consulta ativa. Consultas canceladas permanecem no histórico.</p>
-    {slotModal && canOpenSlot && <ScheduleFormModal initialDate={date} refresh={data.refresh} onClose={() => setSlotModal(false)} onSaved={() => { setSlotModal(false); void data.refresh(); }} />}
-    {newAppointment && canCreate && <AppointmentFormModal {...data} initialSlot={newAppointment.slot} onClose={() => setNewAppointment(null)} onSaved={() => { setNewAppointment(null); void data.refresh(); }} />}
+    {slotModal && canOpenSlot && <ScheduleFormModal initialDate={date} refresh={data.refresh} onClose={() => setSlotModal(false)} onSaved={(saved) => { setDate(saved.date); setSlotModal(false); void data.refresh(); }} />}
+    {newAppointment && canCreate && <AppointmentFormModal {...data} initialSlot={newAppointment.slot} onClose={() => setNewAppointment(null)} onSaved={(saved) => { setDate(saved.date); setNewAppointment(null); void data.refresh(); }} />}
     {viewingId && <AppointmentDetailsModal id={viewingId} onClose={() => setViewingId(null)} />}
   </div>;
 }
