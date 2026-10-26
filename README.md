@@ -6,17 +6,21 @@ React + TypeScript + Vite. Contrato de referência: backend `develop` em
 ## Estado desta rodada
 
 Integrados: login, identidade autenticada (`/auth/me`), restauração de sessão,
-logout, rotas/menus por perfil e CRUD de Especialidades.
+logout, rotas/menus por perfil, CRUD de Especialidades, Usuários e Profissionais,
+além de criação, atualização, listagem e detalhes cadastrais de Pacientes.
 
-Profissionais, Usuários, Pacientes, Schedule, Agenda, Consultas, Prontuários e
-Dashboard ainda usam demonstrações locais. Mudanças nesses módulos nesta rodada
-se limitam às permissões visuais. Seus dados não representam o backend.
+Schedule, Agenda, Consultas, Prontuários e Dashboard ainda usam demonstrações
+locais. Seus dados não representam o backend. As abas clínicas nos detalhes do
+paciente preservam sua estrutura, com indicação de indisponibilidade e sem
+associar histórico fictício ao paciente real.
 Agenda e Consultas são duas visualizações do mesmo recurso Appointment.
 O catálogo DesignSystem permanece no código, sem rota funcional. Settings não é
 um módulo disponível.
 
 A fundação foi homologada em Chrome real com backend/PostgreSQL isolados:
 [resultados e limites da homologação](docs/HOMOLOGACAO_BROWSER.md).
+O Bloco 2 tem contratos, permissões, gates e limitações registrados em
+[Integração dos cadastros](docs/INTEGRACAO_CADASTROS.md).
 
 ## Executar
 
@@ -73,6 +77,12 @@ Perfis: ADMIN, RECEPTIONIST, PROFESSIONAL. A mesma matriz controla menu e acesso
 direto às rotas. A UI não substitui autorização/ownership do backend.
 
 Especialidades permite leitura para todos os perfis; escrita somente para ADMIN.
+Usuários permite CRUD somente para ADMIN. Profissionais permite CRUD para ADMIN
+e leitura para RECEPTIONIST. Pacientes permite leitura, criação e atualização
+para ADMIN/RECEPTIONIST; não oferece exclusão. PROFESSIONAL não acessa esses
+três cadastros globais. E-mail de User e CPF de Patient são somente leitura na
+edição. A criação de Professional inclui sua conta de perfil PROFESSIONAL;
+a edição do cadastro profissional não altera credenciais.
 Listagens retornam arrays; filtro é local. Descrição/created podem ser nulos.
 Sucessos de mutação aparecem somente após a resposta da API. Falhas mantêm o
 formulário e disponibilizam message/details.
