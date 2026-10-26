@@ -35,11 +35,11 @@ export function Navbar() {
           className="flex items-center gap-3 hover:opacity-80 transition-opacity p-1.5 rounded-xl cursor-pointer"
         >
           <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
-            {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'SJ'}
+            {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : ''}
           </div>
           <div className="flex flex-col text-left hidden sm:flex">
-            <span className="text-sm font-semibold text-text">{user?.name || "Dra. Sarah Jenkins"}</span>
-            <span className="text-xs text-text-secondary">{user?.role === "ADMIN" ? "Administrador" : "Médico"}</span>
+            <span className="text-sm font-semibold text-text">{user?.name}</span>
+            <span className="text-xs text-text-secondary">{user && ({ ADMIN: 'Administrador', RECEPTIONIST: 'Recepção', PROFESSIONAL: 'Profissional' })[user.profile]}</span>
           </div>
         </button>
 
