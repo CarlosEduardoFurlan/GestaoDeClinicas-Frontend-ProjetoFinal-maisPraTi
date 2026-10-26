@@ -1,7 +1,42 @@
 ﻿# Integração do Bloco 2 — cadastros
 
 Data: 26/10/2026. Resultado: **BLOCO 2 INTEGRADO E PRONTO PARA REVISÃO**.
-Trabalho exclusivamente local, sem push, PR ou merge.
+A etapa inicial foi concluída localmente. A publicação foi autorizada na rodada
+seguinte, após correção backend e revalidação específica descritas abaixo.
+
+## Consolidação após correção backend
+
+Nova baseline backend: `9daa1c5567774ba9aa6726082f3747b01fab1343` (develop).
+Correção separada na [PR backend #18](https://github.com/CarlosEduardoFurlan/GestaoDeClinicas-Backend-ProjetoFinal-maisPraTi/pull/18),
+commit `d419211b3462c7258734a600a886d8c6ca1a1971`. O CI Backend validation passou
+antes do merge; localmente, Maven clean verify passou com 275 testes, PostgreSQL
+18 exclusivo, Flyway V1–V15 e JPA validate. O JAR validou 409/204/404 por HTTP.
+
+A causa real foi TransientPropertyValueException no grafo gerenciado User /
+Professional, traduzida em InvalidDataAccessApiUsageException antes da FK.
+DELETE JPQL direto no repository permite às constraints existentes produzir
+DataIntegrityViolationException/409. Sem mudança de migration, FK, handler ou
+regra de negócio. Detalhes em docs/USER_DELETE_CONFLICT.md do backend.
+
+Revalidação específica, sem mudança de código de aplicação frontend:
+
+- Chrome 156.0.8078.48 com ADMIN real e a nova develop backend.
+- DELETE User com Professional/Schedule retorna **409**; modal e linha ficam
+  preservados, mensagem controlada, nenhum falso sucesso e sessão ativa.
+- User, Professional e Schedule continuam persistidos após o conflito.
+- DELETE User livre retorna **204**; linha permanece enquanto a requisição
+  aguarda e só é removida após confirmação HTTP; GET posterior retorna 404.
+- Login e GET Users, Professionals, Patients e Specialties retornam sucesso.
+- Console sem exceções React/Promise ou regressões; Bearer confirmado.
+- Lint e build passam; permanece somente o aviso conhecido de chunk >500 kB.
+
+Não foi repetida a homologação completa dos três cadastros. Os contratos de
+create/update e os módulos deste bloco não mudaram. Apenas README e este
+relatório foram atualizados nesta rodada frontend.
+Não há workflow de CI para PR/develop neste frontend: o workflow existente
+publica Pages somente em main ou por acionamento manual. Os gates locais e o
+browser real são os checks executados nesta publicação; nenhum deploy foi
+acionado. Develop será validada novamente após o merge da PR frontend.
 
 ## Estado inicial e escopo
 
@@ -148,7 +183,7 @@ erro de CPF duplicado e visualização do profissional pela recepção. Layouts 
 cards/tabelas/modais existentes preservados, com campos/estados necessários ao
 contrato. Capturas temporárias não entram nos commits.
 
-### Limitação confirmada do backend congelado
+### Histórico: limitação da baseline anterior, resolvida na PR backend #18
 
 Ao excluir um User associado a Professional referenciado por Schedule, o
 backend responde **HTTP 500**, mensagem normalizada **Erro interno no servidor**,
@@ -157,8 +192,8 @@ O frontend não remove a linha, mantém confirmação e apresenta erro controlad
 Não transforma 500 em 409 e não apresenta falso sucesso. A exclusão diretamente
 de Professional com essa FK retornou **409**, validando também esse tratamento.
 
-Esta divergência está registrada para revisão separada do backend; não impede
-CRUD válido nem autoriza modificar a baseline nesta execução. Nenhum cenário
+Esta divergência foi registrada na etapa inicial e corrigida separadamente na
+rodada de consolidação acima. Nenhum cenário
 artificial de 409 foi inventado para Patient: o 409 real seguro foi o DELETE de
 Professional. Patient utiliza a mesma normalização central para erros HTTP.
 
@@ -187,6 +222,8 @@ AppContext global preservado para não ampliar a alteração para módulos simul
   PatientsPage, PatientDetailsPage, PatientFormModal e patient.service.
 - Commit de documentação — docs: registra integracao do bloco de cadastros:
   README.md e este relatório. Hashes finais disponíveis em git log.
+- Commit de consolidação — docs: registra revalidacao com conflito backend corrigido:
+  nova baseline no README e revalidação 409/204 neste relatório.
 
 Inventário completo de arquivos de aplicação:
 
@@ -208,8 +245,8 @@ docs/INTEGRACAO_CADASTROS.md
 
 ## Bloqueios e próxima etapa
 
-Nenhum bloqueio de integração frontend pendente. Limitação 500 de exclusão de
-User com dependências documentada, sem correção de backend nesta branch.
-Revisar este Bloco 2 e decidir separadamente sobre a divergência de status HTTP.
-Nenhum push/PR/merge realizado; publicação aguarda nova instrução. Os demais
-módulos seguem para próximas etapas, fora desta entrega.
+Nenhum bloqueio de integração frontend pendente. O 500 histórico foi corrigido
+no backend e a nova baseline foi revalidada sem mascarar o status no frontend.
+A publicação/merge do Bloco 2 foi autorizada após esses gates. A etapa inicial
+sem push foi preservada em commits separados da consolidação. Os demais
+módulos seguem fora desta entrega; parar após validar a develop consolidada.

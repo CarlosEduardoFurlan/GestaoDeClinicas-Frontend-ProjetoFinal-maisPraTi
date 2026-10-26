@@ -1,7 +1,7 @@
 ﻿# +PraClinic — Frontend
 
 React + TypeScript + Vite. Contrato de referência: backend `develop` em
-`5e2f9422426a8b6adcfa69d1254ddcf29a55c19f`, base `/api`.
+`9daa1c5567774ba9aa6726082f3747b01fab1343`, base `/api`.
 
 ## Estado desta rodada
 
