@@ -17,11 +17,15 @@ um módulo disponível.
 
 ## Executar
 
-Na pasta `clinica-frontend`, instalar as dependências do `bun.lock`:
+Na raiz deste repositório, instalar as dependências do `bun.lock`:
 
 ```text
 bun install --frozen-lockfile
 ```
+
+Se Bun não estiver no PATH, pode-se executar o binário do pacote oficial sem mudar
+o lockfile: `npm exec --yes --package=bun -- bun install --frozen-lockfile`.
+O `package-lock.json` local preexistente não é o lockfile oficial desta branch.
 
 Copiar `.env.example` para `.env.local` e configurar:
 
