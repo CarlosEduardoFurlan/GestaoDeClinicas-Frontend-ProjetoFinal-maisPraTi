@@ -1,310 +1,186 @@
-import React, { useState } from "react";
-import { Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, X, Check } from "lucide-react";
-import { Button } from "../../components/ui/Button/Button";
-import { useToast } from "../../contexts/ToastContext";
+import React, { useEffect, useRef, useState } from 'react';
+import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Button } from '../../components/ui/Button/Button';
+import { Spinner } from '../../components/ui/Spinner/Spinner';
+import { Modal } from '../../components/overlay/Modal/Modal';
+import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
+import { SpecialtyService } from '../../services/specialty.service';
+import { errorDescription } from '../../lib/api-error';
+import type { SpecialtyResponse } from '../../types';
 
-interface SpecialtyItem {
-  id: number;
-  name: string;
-  description: string;
-}
-
-const INITIAL_SPECIALTIES: SpecialtyItem[] = [
-  {
-    id: 1,
-    name: "Cardiologia",
-    description: "Diagnóstico e tratamento de doenças que acometem o coração bem como os outros componentes do sistema circulatório.",
-  },
-  {
-    id: 2,
-    name: "Clínica Geral",
-    description: "Acompanhamento geral preventivo, diagnóstico precoce e triagem de patologias comuns de adultos.",
-  },
-  {
-    id: 3,
-    name: "Pediatria",
-    description: "Especialidade médica dedicada à assistência a crianças e adolescentes nos seus diversos aspectos.",
-  },
-  {
-    id: 4,
-    name: "Ortopedia",
-    description: "Cuidado e tratamento de lesões, traumas e doenças congênitas do sistema locomotor e esquelético.",
-  },
-  {
-    id: 5,
-    name: "Dermatologia",
-    description: "Diagnóstico, prevenção e tratamento de doenças relacionadas à pele, pelos, mucosas, cabelo e unhas.",
-  },
-  {
-    id: 6,
-    name: "Ginecologia e Obstetrícia",
-    description: "Saúde integral da mulher, acompanhamento reprodutivo, pré-natal, parto e pós-parto imediato.",
-  },
-];
+interface SpecialtyForm { name: string; description: string }
 
 export function SpecialtiesPage() {
-  const [specialties, setSpecialties] = useState<SpecialtyItem[]>(INITIAL_SPECIALTIES);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const { success, error, warning } = useToast();
-
-  // Modal State
+  const [specialties, setSpecialties] = useState<SpecialtyResponse[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSpecialty, setEditingSpecialty] = useState<SpecialtyItem | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-  });
+  const [editing, setEditing] = useState<SpecialtyResponse | null>(null);
+  const [deleting, setDeleting] = useState<SpecialtyResponse | null>(null);
+  const [form, setForm] = useState<SpecialtyForm>({ name: '', description: '' });
+  const [formError, setFormError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const mutation = useRef<AbortController | null>(null);
+  const { hasRole } = useAuth();
+  const canWrite = hasRole(['ADMIN']);
+  const { success, error } = useToast();
 
-  const filteredSpecialties = specialties.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setLoadError(null);
+    void SpecialtyService.getAll(controller.signal).then((data) => {
+      if (!controller.signal.aborted) setSpecialties(data);
+    }).catch((cause: unknown) => {
+      if (!controller.signal.aborted) setLoadError(errorDescription(cause));
+    }).finally(() => {
+      if (!controller.signal.aborted) setLoading(false);
+    });
+    return () => controller.abort();
+  }, [retry]);
+
+  useEffect(() => () => mutation.current?.abort(), []);
+
+  const filtered = specialties.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.description ?? '').toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const handleOpenNew = () => {
-    setEditingSpecialty(null);
-    setFormData({ name: "", description: "" });
+  const openForm = (item: SpecialtyResponse | null) => {
+    if (!canWrite || pending) return;
+    setEditing(item);
+    setForm({ name: item?.name ?? '', description: item?.description ?? '' });
+    setFormError(null);
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (item: SpecialtyItem) => {
-    setEditingSpecialty(item);
-    setFormData({ name: item.name, description: item.description });
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (id: number) => {
-    const item = specialties.find((s) => s.id === id);
-    setSpecialties((prev) => prev.filter((s) => s.id !== id));
-    warning("Especialidade removida", `A especialidade "${item?.name || ''}" foi excluída.`);
-  };
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim()) {
-      error("Campo obrigatório", "Por favor, informe o nome da especialidade médica.");
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!canWrite || mutation.current) return;
+    const name = form.name.trim();
+    if (!name || name.length > 50) {
+      setFormError('Informe um nome com até 50 caracteres.');
       return;
     }
-
-    if (editingSpecialty) {
-      setSpecialties((prev) =>
-        prev.map((item) =>
-          item.id === editingSpecialty.id
-            ? { ...item, name: formData.name, description: formData.description }
-            : item
-        )
-      );
-      success("Especialidade atualizada", `Alterações em "${formData.name}" salvas com sucesso.`);
-    } else {
-      const newItem: SpecialtyItem = {
-        id: Date.now(),
-        name: formData.name,
-        description: formData.description,
-      };
-      setSpecialties((prev) => [...prev, newItem]);
-      success("Especialidade cadastrada", `A especialidade "${formData.name}" foi criada com sucesso.`);
+    const controller = new AbortController();
+    mutation.current = controller;
+    setPending(true);
+    setFormError(null);
+    try {
+      const request = { name, description: form.description.trim() || null };
+      const saved = editing
+        ? await SpecialtyService.update(editing.id, request, controller.signal)
+        : await SpecialtyService.create(request, controller.signal);
+      if (controller.signal.aborted) return;
+      setSpecialties((previous) => editing
+        ? previous.map((item) => item.id === saved.id ? saved : item)
+        : [...previous, saved]);
+      success(editing ? 'Especialidade atualizada' : 'Especialidade cadastrada', saved.name);
+      setIsModalOpen(false);
+    } catch (cause) {
+      if (!controller.signal.aborted) {
+        const message = errorDescription(cause);
+        setFormError(message);
+        error('Não foi possível salvar', message);
+      }
+    } finally {
+      mutation.current = null;
+      if (!controller.signal.aborted) setPending(false);
     }
+  };
 
-    setIsModalOpen(false);
+  const handleDelete = async () => {
+    if (!canWrite || !deleting || mutation.current) return;
+    const controller = new AbortController();
+    mutation.current = controller;
+    setPending(true);
+    setFormError(null);
+    try {
+      await SpecialtyService.delete(deleting.id, controller.signal);
+      if (controller.signal.aborted) return;
+      setSpecialties((previous) => previous.filter((item) => item.id !== deleting.id));
+      success('Especialidade excluída', deleting.name);
+      setDeleting(null);
+    } catch (cause) {
+      if (!controller.signal.aborted) {
+        const message = errorDescription(cause);
+        setFormError(message);
+        error('Não foi possível excluir', message);
+      }
+    } finally {
+      mutation.current = null;
+      if (!controller.signal.aborted) setPending(false);
+    }
   };
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Especialidades Médicas
-          </h1>
-          <p className="text-slate-500 mt-1 font-medium">
-            Gerenciamento de especialidades cadastradas no sistema.
-          </p>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Especialidades Médicas</h1>
+          <p className="text-slate-500 mt-1 font-medium">Gerenciamento de especialidades cadastradas no sistema.</p>
         </div>
-        <Button
-          variant="primary"
-          onClick={handleOpenNew}
-          className="rounded-xl px-6 font-semibold shadow-sm flex items-center gap-2 bg-primary hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4" />
-          Nova Especialidade
-        </Button>
+        {canWrite && <Button onClick={() => openForm(null)} disabled={loading || !!loadError || pending} className="rounded-xl gap-2"><Plus className="w-4 h-4" />Nova Especialidade</Button>}
       </div>
 
-      {/* Main Container */}
-      <div className="bg-white rounded-[1.25rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col">
-        {/* Filter Area */}
+      <div className="bg-white rounded-[1.25rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-6 border-b border-slate-100">
           <div className="relative max-w-xl">
             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar especialidade por nome ou descrição..."
-              className="w-full bg-[#f4f7fb] border-none rounded-xl pl-11 pr-4 py-3 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
-            />
+            <input type="search" aria-label="Buscar especialidade" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Buscar especialidade por nome ou descrição..." className="w-full bg-slate-50 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider w-1/4">
-                  Nome da Especialidade
-                </th>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider w-3/5">
-                  Descrição do Escopo Clínico
-                </th>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-right">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filteredSpecialties.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-6 py-10 text-center text-slate-400 text-sm font-medium">
-                    Nenhuma especialidade encontrada com os filtros aplicados.
-                  </td>
-                </tr>
-              ) : (
-                filteredSpecialties.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-5 align-middle">
-                      <span className="text-sm font-bold text-slate-900">{item.name}</span>
-                    </td>
-                    <td className="px-6 py-5 align-middle">
-                      <span className="text-sm font-medium text-slate-600 leading-relaxed">
-                        {item.description}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5 align-middle text-right">
-                      <div className="flex items-center justify-end gap-1.5 text-slate-400">
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-2 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors"
-                          title="Editar Especialidade"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-2 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors"
-                          title="Excluir Especialidade"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-slate-500 font-medium">
-            Exibindo 1 a {filteredSpecialties.length} de {specialties.length} registros
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-            <button
-              disabled
-              className="p-1 text-slate-300 cursor-not-allowed"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span>Página 1 de 1</span>
-            <button
-              disabled
-              className="p-1 text-slate-300 cursor-not-allowed"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        {loading ? <div className="p-10 flex items-center justify-center gap-3" role="status"><Spinner />Carregando especialidades...</div>
+          : loadError ? <div className="p-6 space-y-3"><p role="alert" className="text-red-700">{loadError}</p><Button variant="outline" onClick={() => setRetry((value) => value + 1)}>Tentar novamente</Button></div>
+          : <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead><tr className="bg-slate-50/50 border-b border-slate-100">
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Nome da Especialidade</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Descrição do Escopo Clínico</th>
+                  {canWrite && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Ações</th>}
+                </tr></thead>
+                <tbody className="divide-y divide-slate-50">
+                  {filtered.length === 0 ? <tr><td colSpan={canWrite ? 3 : 2} className="px-6 py-10 text-center text-slate-500">
+                    {specialties.length === 0 ? 'Nenhuma especialidade cadastrada.' : 'Nenhuma especialidade encontrada com os filtros aplicados.'}
+                  </td></tr> : filtered.map((item) => <tr key={item.id} className="hover:bg-slate-50/50">
+                    <td className="px-6 py-5 font-bold text-slate-900">{item.name}</td>
+                    <td className="px-6 py-5 text-sm text-slate-600">{item.description ?? '—'}</td>
+                    {canWrite && <td className="px-6 py-5 text-right"><div className="flex justify-end gap-2">
+                      <button type="button" disabled={pending} onClick={() => openForm(item)} aria-label={`Editar ${item.name}`} title="Editar Especialidade" className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><Edit2 className="w-4 h-4" /></button>
+                      <button type="button" disabled={pending} onClick={() => { setFormError(null); setDeleting(item); }} aria-label={`Excluir ${item.name}`} title="Excluir Especialidade" className="p-2 text-slate-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    </div></td>}
+                  </tr>)}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-6 py-4 border-t border-slate-100 text-sm text-slate-500">Exibindo {filtered.length} de {specialties.length} registros</div>
+          </>}
       </div>
 
-      {/* Modal Criar / Editar Especialidade - Conforme Print */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 w-full max-w-[480px] overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="p-6 pb-4 border-b border-slate-100 flex items-start justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                  {editingSpecialty ? "Editar Especialidade" : "Nova Especialidade"}
-                </h3>
-                <p className="text-xs text-slate-500 font-medium mt-1">
-                  Cadastre uma nova especialidade médica no sistema
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSave} className="p-6 space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">
-                  Nome
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder="Ex: Cardiologia, Pediatria..."
-                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">
-                  Descrição
-                </label>
-                <textarea
-                  rows={4}
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  placeholder="Descrição das áreas de atuação e escopo clínico..."
-                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-normal text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all resize-none"
-                />
-              </div>
-
-              <div className="pt-3 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-800 bg-white border border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#0052cc] hover:bg-blue-700 active:bg-blue-800 transition-all cursor-pointer shadow-sm"
-                >
-                  {editingSpecialty ? "Salvar Especialidade" : "Cadastrar Especialidade"}
-                </button>
-              </div>
-            </form>
+      {canWrite && <Modal isOpen={isModalOpen} onClose={() => { if (!pending) setIsModalOpen(false); }} title={editing ? 'Editar Especialidade' : 'Nova Especialidade'}>
+        <form onSubmit={handleSave} className="space-y-4" aria-busy={pending}>
+          <div><label htmlFor="specialty-name" className="block text-xs font-bold mb-2">Nome</label>
+            <input id="specialty-name" required maxLength={50} disabled={pending} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" />
           </div>
-        </div>
-      )}
+          <div><label htmlFor="specialty-description" className="block text-xs font-bold mb-2">Descrição</label>
+            <textarea id="specialty-description" rows={4} disabled={pending} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" />
+          </div>
+          {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}
+          <div className="flex justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={() => setIsModalOpen(false)}>Cancelar</Button><Button type="submit" loading={pending}>{editing ? 'Salvar Especialidade' : 'Cadastrar Especialidade'}</Button></div>
+        </form>
+      </Modal>}
+
+      {canWrite && <Modal isOpen={!!deleting} onClose={() => { if (!pending) setDeleting(null); }} title="Excluir Especialidade">
+        <p className="mb-4">Excluir a especialidade {deleting?.name}?</p>
+        {formError && <p role="alert" className="mb-4 text-sm text-red-700">{formError}</p>}
+        <div className="flex justify-end gap-3"><Button variant="outline" disabled={pending} onClick={() => setDeleting(null)}>Cancelar</Button><Button variant="danger" loading={pending} onClick={() => void handleDelete()}>Excluir</Button></div>
+      </Modal>}
     </div>
   );
 }
