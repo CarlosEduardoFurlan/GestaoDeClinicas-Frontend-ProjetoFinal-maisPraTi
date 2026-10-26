@@ -1,5 +1,8 @@
 # Homologação da fundação — 26/10/2026
 
+Registro histórico parcial. A pendência de browser desta rodada foi posteriormente
+resolvida; consultar [HOMOLOGACAO_BROWSER.md](HOMOLOGACAO_BROWSER.md).
+
 ## ESTADO INICIAL
 
 Branch feature/integracao-frontend-backend, HEAD 477a6da. Os cinco commits anteriores

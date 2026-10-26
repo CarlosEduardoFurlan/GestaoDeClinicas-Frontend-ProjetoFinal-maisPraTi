@@ -15,6 +15,9 @@ Agenda e Consultas são duas visualizações do mesmo recurso Appointment.
 O catálogo DesignSystem permanece no código, sem rota funcional. Settings não é
 um módulo disponível.
 
+A fundação foi homologada em Chrome real com backend/PostgreSQL isolados:
+[resultados e limites da homologação](docs/HOMOLOGACAO_BROWSER.md).
+
 ## Executar
 
 Na raiz deste repositório, instalar as dependências do `bun.lock`:
