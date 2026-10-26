@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../components/ui/Button/Button";
 import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from '../../contexts/AuthContext';
 
 const AVAILABLE_PROFESSIONALS = [
   { name: "Dr. Carlos Mendes", specialty: "Cardiologia" },
@@ -16,6 +17,8 @@ const AVAILABLE_PROFESSIONALS = [
 ];
 
 export function PatientDetailsPage() {
+  const { hasRole } = useAuth();
+  const canReadRecords = hasRole(['ADMIN']);
   const navigate = useNavigate();
   const { success, error } = useToast();
   const [activeTab, setActiveTab] = useState<"pessoais" | "consultas" | "registros">("consultas");
@@ -140,14 +143,14 @@ export function PatientDetailsPage() {
           Consultas
           <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'consultas' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>{patientConsultations.length}</span>
         </button>
-        <button 
+        {canReadRecords && <button
           onClick={() => setActiveTab('registros')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${activeTab === 'registros' ? 'bg-primary text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           <ClipboardList className={`w-4 h-4 ${activeTab === 'registros' ? 'text-white' : 'text-slate-400'}`} />
           Registros Clínicos
           <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'registros' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>2</span>
-        </button>
+        </button>}
       </div>
 
       {/* Content Cards */}
@@ -290,7 +293,7 @@ export function PatientDetailsPage() {
           </div>
         )}
         
-        {activeTab === 'registros' && (
+        {canReadRecords && activeTab === 'registros' && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
@@ -298,10 +301,6 @@ export function PatientDetailsPage() {
                 <h2 className="text-xl font-bold text-slate-900">Registros Clínicos</h2>
                 <p className="text-sm text-slate-500 font-medium mt-1">Registros clínicos vinculados às consultas do paciente.</p>
               </div>
-              <Button variant="primary" className="rounded-xl px-5 py-2.5 font-bold shadow-sm flex items-center justify-center gap-2">
-                <Plus className="w-4 h-4" />
-                Novo registro clínico
-              </Button>
             </div>
 
             {/* Records List */}
@@ -320,9 +319,6 @@ export function PatientDetailsPage() {
                   <div className="flex items-center gap-4">
                     <button className="flex items-center gap-1.5 text-sm font-bold text-primary hover:underline">
                       <Eye className="w-4 h-4" /> Visualizar
-                    </button>
-                    <button className="flex items-center gap-1.5 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">
-                      <Edit2 className="w-4 h-4" /> Editar
                     </button>
                   </div>
                 </div>
@@ -351,9 +347,6 @@ export function PatientDetailsPage() {
                   <div className="flex items-center gap-4">
                     <button className="flex items-center gap-1.5 text-sm font-bold text-primary hover:underline">
                       <Eye className="w-4 h-4" /> Visualizar
-                    </button>
-                    <button className="flex items-center gap-1.5 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">
-                      <Edit2 className="w-4 h-4" /> Editar
                     </button>
                   </div>
                 </div>

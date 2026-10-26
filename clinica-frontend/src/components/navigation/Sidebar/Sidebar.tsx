@@ -5,9 +5,14 @@ import { cn } from "../../../lib/utils";
 import { PlusSquare, LogOut } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
+import { routeProfiles } from '../../../config/permissions';
 
 export function Sidebar() {
-  const { logout } = useAuth();
+  const { logout, hasRole } = useAuth();
+  const visibleNavigation = navigation.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => !!item.path && hasRole(routeProfiles[item.path] ?? [])),
+  })).filter((group) => group.items.length > 0);
   const { info } = useToast();
   const navigate = useNavigate();
 
@@ -41,7 +46,7 @@ export function Sidebar() {
 
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto py-4 px-4 flex flex-col gap-6">
-        {navigation.map((group, index) => (
+        {visibleNavigation.map((group, index) => (
           <div key={index} className="flex flex-col gap-2">
             <span className="text-xs font-semibold text-text-muted uppercase tracking-wider pl-3">
               {group.label}

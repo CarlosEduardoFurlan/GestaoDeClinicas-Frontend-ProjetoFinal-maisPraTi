@@ -1,7 +1,6 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Link } from "react-router-dom";
 import { AppShell } from "../layouts/AppShell/AppShell";
-import { AuthLayout } from "../layouts/AuthLayout/AuthLayout";
-import { DesignSystemPage } from "../pages/DesignSystem/DesignSystemPage";
+import { RouteGuard, SessionGuard } from './RouteGuard';
 import { DashboardPage } from "../pages/Dashboard/DashboardPage";
 import { PatientsPage } from "../pages/Patients/PatientsPage";
 import { PatientDetailsPage } from "../pages/Patients/PatientDetailsPage";
@@ -26,58 +25,53 @@ const PlaceholderPage = ({ title }: { title: string }) => (
 export const router = createBrowserRouter([
   {
     path: "/",
-    // The AppShell now acts as the protected layout for authenticated users
-    element: <AppShell />,
-    children: [
+    element: <SessionGuard />,
+    children: [{ element: <AppShell />, children: [
       {
         index: true,
         element: <DashboardPage />,
       },
       {
-        path: "design-system",
-        element: <DesignSystemPage />,
-      },
-      {
         path: "appointments",
-        element: <AppointmentsPage />,
+        element: <RouteGuard path="/appointments"><AppointmentsPage /></RouteGuard>,
       },
       {
         path: "consultations",
-        element: <ConsultationsPage />,
+        element: <RouteGuard path="/consultations"><ConsultationsPage /></RouteGuard>,
       },
       {
         path: "patients",
-        element: <PatientsPage />,
+        element: <RouteGuard path="/patients"><PatientsPage /></RouteGuard>,
       },
       {
         path: "patients/:id",
-        element: <PatientDetailsPage />,
+        element: <RouteGuard path="/patients"><PatientDetailsPage /></RouteGuard>,
       },
       {
         path: "professionals",
-        element: <ProfessionalsPage />,
+        element: <RouteGuard path="/professionals"><ProfessionalsPage /></RouteGuard>,
       },
       {
         path: "specialties",
-        element: <SpecialtiesPage />,
+        element: <RouteGuard path="/specialties"><SpecialtiesPage /></RouteGuard>,
       },
       {
         path: "schedules",
-        element: <PlaceholderPage title="Grade de Horários (Disponibilidade)" />,
+        element: <RouteGuard path="/schedules"><PlaceholderPage title="Grade de Horários (Disponibilidade)" /></RouteGuard>,
       },
       {
         path: "medical-records",
-        element: <MedicalRecordsPage />,
+        element: <RouteGuard path="/medical-records"><MedicalRecordsPage /></RouteGuard>,
       },
       {
         path: "users",
-        element: <UsersPage />,
+        element: <RouteGuard path="/users"><UsersPage /></RouteGuard>,
       },
       {
-        path: "settings",
-        element: <PlaceholderPage title="Configurações" />,
+        path: "*",
+        element: <div className="space-y-4"><h1 className="text-2xl font-bold">Página não encontrada</h1><Link to="/" className="text-primary underline">Voltar ao Dashboard</Link></div>,
       },
-    ],
+    ] }],
   },
   {
     path: "/login",

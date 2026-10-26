@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CalendarPlus, Plus, X } from "lucide-react";
 import { Button } from "../../components/ui/Button/Button";
 import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from '../../contexts/AuthContext';
 
 type Status = "Reservado" | "Cancelado" | "Disponível";
 
@@ -79,6 +80,8 @@ const DAYS = [
 ];
 
 export function AppointmentsPage() {
+  const { hasRole } = useAuth();
+  const canManage = hasRole(['ADMIN', 'RECEPTIONIST']);
   const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
   const [view, setView] = useState<"Dia" | "Semana">("Semana");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -97,6 +100,7 @@ export function AppointmentsPage() {
   };
 
   const handleSlotClick = (dayIndex: number, hour: string) => {
+    if (!canManage) return;
     const existing = getAppointment(dayIndex, hour);
     if (existing) {
       if (existing.status === "Reservado") {
@@ -136,6 +140,7 @@ export function AppointmentsPage() {
 
   const handleCreateAppointment = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManage) return;
     if (!formData.patient.trim()) {
       error("Atenção", "Por favor, selecione ou informe o paciente.");
       return;
@@ -179,14 +184,14 @@ export function AppointmentsPage() {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Agenda de Consultas</h1>
           <p className="text-slate-500 mt-1 font-medium">Controle de horários e agendamentos dos profissionais</p>
         </div>
-        <Button 
+        {canManage && <Button
           variant="primary" 
           onClick={handleOpenNewAppointment}
           className="rounded-xl px-6 font-semibold shadow-sm flex items-center gap-2 bg-primary hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
           Nova Consulta
-        </Button>
+        </Button>}
       </div>
 
       {/* Toolbar / Filters */}
@@ -346,7 +351,7 @@ export function AppointmentsPage() {
       </div>
 
       {/* Modal Novo Agendamento - Conforme Print */}
-      {isModalOpen && (
+      {canManage && isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-[480px] p-6 sm:p-8 animate-in zoom-in-95 duration-200">
             {/* Modal Header */}

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../components/ui/Button/Button";
 import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from '../../contexts/AuthContext';
 
 const SYSTEM_USERS = [
   { id: "u1", name: "Dra. Camila Nogueira", email: "camila.nogueira@clinicasys.com.br" },
@@ -80,6 +81,8 @@ const INITIAL_PROFESSIONALS = [
 ];
 
 export function ProfessionalsPage() {
+  const { hasRole } = useAuth();
+  const canWrite = hasRole(['ADMIN']);
   const [professionals, setProfessionals] = useState(INITIAL_PROFESSIONALS);
   const [searchTerm, setSearchTerm] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("Todas as Especialidades");
@@ -156,6 +159,7 @@ export function ProfessionalsPage() {
 
   const handleSaveSchedule = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canWrite) return;
     success(
       "Grade de atendimento salva",
       `A grade de horários de ${scheduleProf?.name || "Dra. Camila Nogueira"} foi atualizada com sucesso.`
@@ -207,6 +211,7 @@ export function ProfessionalsPage() {
   };
 
   const handleDelete = (id: number) => {
+    if (!canWrite) return;
     const prof = professionals.find((p) => p.id === id);
     setProfessionals((prev) => prev.filter((p) => p.id !== id));
     warning("Profissional removido", `${prof?.name || "Profissional"} foi desvinculado do corpo clínico.`);
@@ -235,6 +240,7 @@ export function ProfessionalsPage() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canWrite) return;
 
     let name = "";
     let email = "";
@@ -298,14 +304,14 @@ export function ProfessionalsPage() {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Profissionais de Saúde</h1>
           <p className="text-slate-500 mt-1 font-medium">Corpo clínico e áreas de atuação vinculadas</p>
         </div>
-        <Button 
+        {canWrite && <Button
           variant="primary" 
           onClick={handleOpenNew}
           className="rounded-xl px-6 font-semibold shadow-sm flex items-center gap-2 bg-primary hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
           Novo Profissional
-        </Button>
+        </Button>}
       </div>
 
       {/* Main Container */}
@@ -390,7 +396,7 @@ export function ProfessionalsPage() {
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button 
+                      {canWrite && <><button
                         onClick={() => handleOpenSchedule(prof)}
                         className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-colors" 
                         title="Editar Grade de Atendimento"
@@ -410,7 +416,7 @@ export function ProfessionalsPage() {
                         title="Excluir"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </button>
+                      </button></>}
                     </div>
                   </td>
                 </tr>
@@ -440,7 +446,7 @@ export function ProfessionalsPage() {
       </div>
 
       {/* Modal Criar / Editar Profissional - Conforme Print */}
-      {isModalOpen && (
+      {canWrite && isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-[540px] overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header */}
@@ -636,7 +642,7 @@ export function ProfessionalsPage() {
       )}
 
       {/* Modal Editar Grade de Atendimento - Conforme Print */}
-      {isScheduleModalOpen && (
+      {canWrite && isScheduleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-[560px] overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header */}

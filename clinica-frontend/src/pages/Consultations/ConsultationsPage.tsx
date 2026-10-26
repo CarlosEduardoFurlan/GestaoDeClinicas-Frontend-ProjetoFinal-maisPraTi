@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Search, Calendar, CheckCircle, ChevronLeft, ChevronRight, Eye, Edit2, Trash2, Eraser, Plus, X, ChevronDown } from "lucide-react";
 import { Button } from "../../components/ui/Button/Button";
 import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from '../../contexts/AuthContext';
 
 const AVAILABLE_PATIENTS = [
   "Carlos Eduardo Nogueira",
@@ -106,6 +107,8 @@ const INITIAL_CONSULTATIONS = [
 ];
 
 export function ConsultationsPage() {
+  const { hasRole } = useAuth();
+  const canManage = hasRole(['ADMIN', 'RECEPTIONIST']);
   const [consultations, setConsultations] = useState(INITIAL_CONSULTATIONS);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos os Status");
@@ -131,6 +134,7 @@ export function ConsultationsPage() {
   });
 
   const handleCancelConsultation = (id: number) => {
+    if (!canManage) return;
     setConsultations((prev) =>
       prev.map((c) =>
         c.id === id ? { ...c, status: "Cancelada", statusDimmed: true } : c
@@ -152,6 +156,7 @@ export function ConsultationsPage() {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManage) return;
     if (!formData.patient.trim()) {
       error("Atenção", "Por favor, selecione ou informe o paciente.");
       return;
@@ -195,14 +200,14 @@ export function ConsultationsPage() {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Consultas</h1>
           <p className="text-slate-500 mt-1 font-medium">Listagem de agendamentos e atendimentos clínicos da clínica</p>
         </div>
-        <Button 
+        {canManage && <Button
           variant="primary" 
           onClick={handleOpenModal}
           className="rounded-xl px-6 font-semibold shadow-sm flex items-center gap-2 bg-primary hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
           Nova Consulta
-        </Button>
+        </Button>}
       </div>
 
       {/* Summary Cards */}
@@ -328,13 +333,13 @@ export function ConsultationsPage() {
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button 
+                      {canManage && <button
                         onClick={() => handleCancelConsultation(item.id)}
                         className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-md transition-colors" 
                         title="Cancelar Consulta"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </button>
+                      </button>}
                     </div>
                   </td>
                 </tr>
@@ -357,7 +362,7 @@ export function ConsultationsPage() {
       </div>
 
       {/* Modal Nova Consulta - Conforme Print */}
-      {isModalOpen && (
+      {canManage && isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-[480px] p-6 sm:p-8 animate-in zoom-in-95 duration-200">
             {/* Modal Header */}

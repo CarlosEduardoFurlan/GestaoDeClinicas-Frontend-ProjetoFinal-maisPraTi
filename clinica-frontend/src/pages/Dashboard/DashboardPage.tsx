@@ -1,8 +1,10 @@
 import React from "react";
 import { Calendar, Clock, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../../components/ui/Button/Button";
+import { useAuth } from '../../contexts/AuthContext';
 
 export function DashboardPage() {
+  const { hasRole } = useAuth();
   const appointments = [
     {
       time: "08:30",
@@ -74,9 +76,9 @@ export function DashboardPage() {
             <Calendar className="w-4 h-4" />
             Hoje, 24 de Outubro
           </div>
-          <Button variant="primary" className="rounded-full px-6 font-semibold shadow-sm">
+          {hasRole(['ADMIN', 'RECEPTIONIST']) && <Button variant="primary" className="rounded-full px-6 font-semibold shadow-sm">
             + Nova Consulta
-          </Button>
+          </Button>}
         </div>
       </div>
 

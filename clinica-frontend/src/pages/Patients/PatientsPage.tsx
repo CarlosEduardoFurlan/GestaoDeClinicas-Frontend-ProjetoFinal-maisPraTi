@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, User, Eye, Edit2, FileText, FilterX, X, Check } from "lucide-react";
 import { Button } from "../../components/ui/Button/Button";
 import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from '../../contexts/AuthContext';
 
 const INITIAL_PATIENTS = [
   {
@@ -98,6 +99,8 @@ const INITIAL_PATIENTS = [
 ];
 
 export function PatientsPage() {
+  const { hasRole } = useAuth();
+  const canReadRecords = hasRole(['ADMIN']);
   const [patientList, setPatientList] = useState(INITIAL_PATIENTS);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -315,7 +318,7 @@ export function PatientsPage() {
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button 
+                      {canReadRecords && <button
                         className="p-2 hover:bg-slate-100 hover:text-slate-700 rounded-md transition-colors" 
                         title="Prontuário"
                         onClick={(e) => {
@@ -325,7 +328,7 @@ export function PatientsPage() {
                         }}
                       >
                         <FileText className="w-4 h-4" />
-                      </button>
+                      </button>}
                     </div>
                   </td>
                 </tr>

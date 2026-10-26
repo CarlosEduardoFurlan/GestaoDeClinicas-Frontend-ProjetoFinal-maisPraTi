@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../components/ui/Button/Button";
 import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from '../../contexts/AuthContext';
 
 const AVAILABLE_CONSULTATIONS = [
   {
@@ -121,6 +122,8 @@ const INITIAL_RECORDS = [
 ];
 
 export function MedicalRecordsPage() {
+  const { hasRole } = useAuth();
+  const canWrite = hasRole(['PROFESSIONAL']);
   const [records, setRecords] = useState(INITIAL_RECORDS);
   const [selectedRecordId, setSelectedRecordId] = useState<number | null>(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -151,6 +154,7 @@ export function MedicalRecordsPage() {
 
   const handleSaveNew = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canWrite) return;
     if (!clinicalNotes.trim()) {
       error("Erro de validação", "Por favor, digite as anotações do atendimento.");
       return;
@@ -186,6 +190,7 @@ export function MedicalRecordsPage() {
 
   const handleSaveNotes = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canWrite) return;
     if (!selectedRecord) return;
 
     setRecords((prev) =>
@@ -203,14 +208,14 @@ export function MedicalRecordsPage() {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Prontuários</h1>
           <p className="text-slate-500 mt-1 font-medium">Registros e anotações clínicas dos atendimentos realizados na clínica.</p>
         </div>
-        <Button 
+        {canWrite && <Button
           variant="primary" 
           onClick={handleOpenNew}
           className="rounded-xl px-6 font-semibold shadow-sm flex items-center gap-2 bg-primary hover:bg-blue-700"
         >
           <FileText className="w-4 h-4" />
           Novo Prontuário
-        </Button>
+        </Button>}
       </div>
 
       {/* Filters Area */}
@@ -378,20 +383,20 @@ export function MedicalRecordsPage() {
               >
                 Fechar Visualização
               </button>
-              <button 
+              {canWrite && <button
                 onClick={handleOpenEditNotes}
                 className="w-full py-3 px-5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-blue-700 shadow-sm shadow-blue-200 transition-colors flex items-center justify-center gap-2"
               >
                 <Edit2 className="w-4 h-4" />
                 Editar Observações
-              </button>
+              </button>}
             </div>
           </div>
         )}
       </div>
 
       {/* Modal Novo Prontuário - Conforme Print */}
-      {isModalOpen && (
+      {canWrite && isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-[620px] overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header */}
@@ -523,7 +528,7 @@ export function MedicalRecordsPage() {
       )}
 
       {/* Modal Editar Observações */}
-      {isEditNotesModalOpen && (
+      {canWrite && isEditNotesModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-lg overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
