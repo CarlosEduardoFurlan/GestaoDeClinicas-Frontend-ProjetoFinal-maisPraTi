@@ -1,37 +1,33 @@
-/**
- * Este arquivo servirá como a base para a configuração do Axios.
- * Ele prepara o terreno para a integração real com o backend (Spring Boot).
- */
 import axios from 'axios';
+import { normalizeApiError } from '../lib/api-error';
+import { invalidateSession, tokenStorage } from '../lib/session';
 
-// A URL base seria configurada via variável de ambiente no Vite (.env)
-// ex: import.meta.env.VITE_API_URL
-const API_URL = 'http://localhost:8080/api';
+const baseURL = import.meta.env.VITE_API_URL?.trim().replace(/\/$/, '');
 
 export const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL,
+  timeout: 15000,
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Interceptor para injetar o token de autenticação em todas as requisições
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (!baseURL) throw new Error('Configure VITE_API_URL no arquivo .env.local e reinicie o frontend.');
+  const token = tokenStorage.get();
+  if (token && config.url !== '/auth/login') {
+    config.headers.set('Authorization', `Bearer ${token}`);
   }
   return config;
 });
 
-// Interceptor para tratar respostas (ex: 401 Unauthorized -> deslogar usuário)
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // localStorage.removeItem('auth_token');
-      // window.location.href = '/login';
+  (error: unknown) => {
+    if (axios.isCancel(error)) return Promise.reject(error);
+    if (axios.isAxiosError(error) && error.response?.status === 401 && error.config?.url !== '/auth/login') {
+      // Uma resposta tardia da sessão anterior não encerra uma sessão nova.
+      const token = tokenStorage.get();
+      if (!token || error.config?.headers?.get('Authorization') === `Bearer ${token}`) invalidateSession();
     }
-    return Promise.reject(error);
-  }
+    return Promise.reject(normalizeApiError(error));
+  },
 );
