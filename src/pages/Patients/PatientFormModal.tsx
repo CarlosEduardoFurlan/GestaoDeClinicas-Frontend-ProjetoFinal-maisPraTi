@@ -41,7 +41,7 @@ export function PatientFormModal({ patient, onClose, onSaved }: { patient: Patie
       </fieldset>
       <AddressFields prefix="patient" disabled={pending} value={form.address} onChange={(address) => setForm({ ...form, address })} />
       {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}
-      <div className="flex justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={onClose}>Cancelar</Button><Button type="submit" loading={pending}>Salvar Paciente</Button></div>
+      <div className="flex flex-wrap justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={onClose}>Cancelar</Button><Button type="submit" loading={pending}>Salvar Paciente</Button></div>
     </form>
   </Modal>;
 }

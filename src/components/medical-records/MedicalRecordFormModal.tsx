@@ -60,7 +60,7 @@ export function MedicalRecordFormModal({ record, records, appointments, loading,
       </fieldset>
       {loadError && <div><p role="alert" className="text-red-700">{loadError}</p><Button type="button" variant="outline" disabled={pending} onClick={() => void refresh()}>Recarregar dados</Button></div>}
       {formError && <p role="alert" className="text-red-700 text-sm">{formError}</p>}
-      <div className="flex justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={onClose}>Cancelar</Button><Button type="submit" loading={pending} disabled={!allowed || loading || !!loadError || (!record && !selected)}>Salvar prontuário</Button></div>
+      <div className="flex flex-wrap justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={onClose}>Cancelar</Button><Button type="submit" loading={pending} disabled={!allowed || loading || !!loadError || (!record && !selected)}>Salvar prontuário</Button></div>
     </form>
   </Modal>;
 }

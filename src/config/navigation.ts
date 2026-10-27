@@ -1,5 +1,4 @@
 import React from "react";
-import { LayoutDashboard, Calendar, Users, Settings, Component, Stethoscope, ClipboardList, Clock } from 'lucide-react';
 
 export interface NavItem {
   label: string;

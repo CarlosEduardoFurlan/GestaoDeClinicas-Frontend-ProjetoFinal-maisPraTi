@@ -99,7 +99,7 @@ export function ProfessionalsPage() {
           <FormField id="professional-password" label="Senha" type="password" required maxLength={20} autoComplete="new-password" value={form.password} onChange={(event) => change('password', event.target.value)} />
         </fieldset>}
         {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}
-        <div className="flex justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={() => { setIsOpen(false); setForm(emptyForm()); }}>Cancelar</Button><Button type="submit" loading={pending} disabled={specialties.loading || !!specialties.loadError || !specialties.items.length}>Salvar Profissional</Button></div>
+        <div className="flex flex-wrap justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={() => { setIsOpen(false); setForm(emptyForm()); }}>Cancelar</Button><Button type="submit" loading={pending} disabled={specialties.loading || !!specialties.loadError || !specialties.items.length}>Salvar Profissional</Button></div>
       </form>
     </Modal>}
     <Modal isOpen={!!viewing} onClose={() => setViewing(null)} title="Dados do Profissional" className="max-w-2xl">
@@ -108,6 +108,6 @@ export function ProfessionalsPage() {
         ['Logradouro', viewing.address?.address], ['Número', viewing.address?.number], ['Complemento', viewing.address?.complement], ['Bairro', viewing.address?.district], ['Cidade', viewing.address?.city], ['UF', viewing.address?.uf], ['CEP', viewing.address?.zipCode],
       ].map(([label, value]) => <div key={label}><dt className="text-slate-500 mb-1">{label}</dt><dd className="font-semibold text-slate-900">{value ?? '—'}</dd></div>)}</dl>}
     </Modal>
-    {canWrite && <Modal isOpen={!!deleting} onClose={() => { if (!pending) setDeleting(null); }} title="Excluir Profissional"><p className="mb-4">Excluir o cadastro de {deleting?.name}? A conta de acesso será preservada.</p>{formError && <p role="alert" className="mb-4 text-sm text-red-700">{formError}</p>}<div className="flex justify-end gap-3"><Button variant="outline" disabled={pending} onClick={() => setDeleting(null)}>Cancelar</Button><Button variant="danger" loading={pending} onClick={() => void remove()}>Excluir</Button></div></Modal>}
+    {canWrite && <Modal isOpen={!!deleting} onClose={() => { if (!pending) setDeleting(null); }} title="Excluir Profissional"><p className="mb-4">Excluir o cadastro de {deleting?.name}? A conta de acesso será preservada.</p>{formError && <p role="alert" className="mb-4 text-sm text-red-700">{formError}</p>}<div className="flex flex-wrap justify-end gap-3"><Button variant="outline" disabled={pending} onClick={() => setDeleting(null)}>Cancelar</Button><Button variant="danger" loading={pending} onClick={() => void remove()}>Excluir</Button></div></Modal>}
   </div>;
 }

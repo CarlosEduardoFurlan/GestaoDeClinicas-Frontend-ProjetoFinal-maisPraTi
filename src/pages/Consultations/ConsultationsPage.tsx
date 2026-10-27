@@ -113,7 +113,7 @@ export function ConsultationsPage() {
     {canceling && <Modal isOpen title="Cancelar Consulta" onClose={() => { if (!pendingId) setCanceling(null); }}>
       <p className="text-sm text-slate-600 mb-4">Cancelar a consulta de {canceling.patientName} em {displayDate(canceling.date)} às {displayTime(canceling.time)}? O registro continuará no histórico.</p>
       {actionError && <p role="alert" className="text-sm text-red-700 mb-4">{actionError}</p>}
-      <div className="flex justify-end gap-3"><Button variant="outline" disabled={!!pendingId} onClick={() => setCanceling(null)}>Voltar</Button><Button variant="danger" loading={!!pendingId} onClick={() => void cancel()}>Confirmar cancelamento</Button></div>
+      <div className="flex flex-wrap justify-end gap-3"><Button variant="outline" disabled={!!pendingId} onClick={() => setCanceling(null)}>Voltar</Button><Button variant="danger" loading={!!pendingId} onClick={() => void cancel()}>Confirmar cancelamento</Button></div>
     </Modal>}
   </div>;
 }

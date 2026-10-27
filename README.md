@@ -1,124 +1,119 @@
-﻿# +PraClinic — Frontend
+# +PraClinic — Frontend
 
-React + TypeScript + Vite. Contrato de referência: backend `develop` em
+Aplicação de gestão clínica em React 19, TypeScript, React Router 7, Vite 6,
+Tailwind CSS 4 e Axios. Bun 1.4.4 e `bun.lock` são a referência de instalação;
+Node 24 executa os smokes isolados. Backend de referência: `develop`
 `e183b6bc490af6b60a11b0fb1604986c1ca40e66`, base `/api`.
 
-## Estado desta rodada
+## Executar localmente
 
-Integrados: login, identidade autenticada (`/auth/me`), restauração de sessão,
-logout, rotas/menus por perfil, CRUD de Especialidades, Usuários e Profissionais,
-além de criação, atualização, listagem e detalhes cadastrais de Pacientes.
-Schedule fornece os horários reais; Agenda e Consultas consomem Appointment
-para criação, visualização, transições de status e cancelamento lógico.
-Prontuários usa MedicalRecord real (Appointment + notes), com autoria exclusiva
-do PROFESSIONAL sobre consultas próprias e leitura global para ADMIN.
-PatientDetails tem consultas reais e leitura de registros clínicos para ADMIN.
-Dashboard deriva indicadores de Appointments e, quando autorizado, Patients.
+Na raiz deste repositório:
 
-Agenda e Consultas são duas visualizações do mesmo recurso Appointment.
-O catálogo DesignSystem permanece no código, sem rota funcional. Settings não é
-um módulo disponível. A rota técnica /schedules ainda é um placeholder fora do
-menu; disponibilidade já funciona na Agenda. Essa rota será revisada no Bloco 5.
-
-A fundação foi homologada em Chrome real com backend/PostgreSQL isolados:
-[resultados e limites da homologação](docs/HOMOLOGACAO_BROWSER.md).
-O Bloco 2 tem contratos, permissões, gates e limitações registrados em
-[Integração dos cadastros](docs/INTEGRACAO_CADASTROS.md).
-O Bloco 3, sua homologação e a revalidação de Schedule duplicado 409 estão descritos em
-[Integração de agendamentos](docs/INTEGRACAO_AGENDAMENTOS.md).
-O Bloco 4, sua homologação e a revisão para publicação estão registrados em:
-[Integração clínica e Dashboard](docs/INTEGRACAO_CLINICA_DASHBOARD.md).
-
-## Executar
-
-Na raiz deste repositório, instalar as dependências do `bun.lock`:
-
-```text
+```sh
 bun install --frozen-lockfile
 ```
 
-Se Bun não estiver no PATH, pode-se executar o binário do pacote oficial sem mudar
-o lockfile: `npm exec --yes --package=bun -- bun install --frozen-lockfile`.
-O `package-lock.json` local preexistente não é o lockfile oficial desta branch.
+Copie `.env.example` para `.env.local` e configure a API local:
 
-Copiar `.env.example` para `.env.local` e configurar:
-
-```text
+```dotenv
 VITE_API_URL=http://localhost:8080/api
 ```
 
-Variáveis VITE são públicas no bundle. Não incluir credenciais ou secrets.
-Reiniciar Vite depois de alterar a configuração. A URL é definida no build.
-A aplicação informa um erro de configuração se VITE_API_URL estiver ausente.
+No ambiente do backend, defina `APP_CORS_ALLOWED_ORIGINS=http://localhost:3000`.
+Esse valor pertence ao ambiente backend. Não use wildcard.
 
-No ambiente do backend, configurar:
-
-```text
-APP_CORS_ALLOWED_ORIGINS=http://localhost:3000
+```sh
+bun run dev
 ```
 
-Essa variável pertence ao ambiente backend, não ao arquivo de código do servidor.
-Não usar wildcard.
+O frontend usa `http://localhost:3000`; `strictPort` impede troca silenciosa de
+porta. Reinicie Vite após mudar o ambiente. Variáveis `VITE_*` são públicas e
+definidas no build: nunca inclua credenciais ou secrets.
 
-```text
-npm run dev
-```
+Se Bun não estiver no PATH, use o pacote oficial temporariamente:
+`npm exec --yes --package=bun@1.4.4 -- bun install --frozen-lockfile`.
+No PowerShell que bloqueia scripts `.ps1`, use `npm.cmd`. O `package-lock.json`
+local preexistente não é o lockfile oficial e não integra esta estabilização.
 
-Origem: `http://localhost:3000`. strictPort mantém a porta previsível: se ocupada,
-o servidor falha em vez de escolher silenciosamente outra origem.
-No PowerShell que bloqueia npm.ps1, usar `npm.cmd` nos mesmos comandos.
+## Funcionamento e acesso
 
-## Sessão e permissões
+O cliente Axios central trata Bearer, timeout, cancelamento e erros. Login usa
+`/auth/login` e `/auth/me`; somente o accessToken é persistido. Reload revalida a
+sessão. 401 de sessão limpa a identidade; 403 preserva o login. Logout também
+reinicia as telas dependentes da sessão. Não existe refresh token no contrato.
 
-Login envia email/password, armazena apenas o accessToken em localStorage
-(`auth_token`) e consulta `/auth/me`. O usuário administrativo e a identidade
-AuthenticatedUser são contratos separados. Nenhuma senha é persistida.
+| Perfil | Acesso funcional |
+| --- | --- |
+| ADMIN | Cadastros e agenda globais; prontuários somente leitura |
+| RECEPTIONIST | Pacientes, agenda e consultas; profissionais/especialidades somente leitura; sem Users ou conteúdo clínico |
+| PROFESSIONAL | Agenda, consultas e prontuários próprios; especialidades somente leitura; sem cadastros globais de Patients, Professionals ou Users |
 
-Reload valida o token pelo backend. 401 fora do login limpa token, identidade e
-estados dependentes e redireciona ao login. 403 preserva a sessão. Falha de rede
-na restauração oferece nova tentativa; logout limpa o token. A validação de
-expiração ocorre no backend, sem confiar em decodificação local do JWT.
-Não existe refresh token ou endpoint de logout no contrato atual.
+Menu e guards compartilham a matriz de perfis. O backend continua responsável
+por autorização e ownership.
 
-Perfis: ADMIN, RECEPTIONIST, PROFESSIONAL. A mesma matriz controla menu e acesso
-direto às rotas. A UI não substitui autorização/ownership do backend.
+Agenda e Consultas representam Appointment; Schedule fornece disponibilidade.
+O agendamento usa um único formulário, também reutilizado em PatientDetails.
+Prontuários preserva `id`, `appointmentId` e `notes`, combinando MedicalRecord e
+Appointment na apresentação. ADMIN vê as consultas e registros do paciente;
+RECEPTIONIST não monta a aba clínica. Dashboard deriva indicadores das APIs
+existentes, sem endpoints próprios. Datas e horas clínicas permanecem locais.
+Não existe exclusão de prontuário; cancelar consulta preserva seu histórico.
 
-Especialidades permite leitura para todos os perfis; escrita somente para ADMIN.
-Usuários permite CRUD somente para ADMIN. Profissionais permite CRUD para ADMIN
-e leitura para RECEPTIONIST. Pacientes permite leitura, criação e atualização
-para ADMIN/RECEPTIONIST; não oferece exclusão. PROFESSIONAL não acessa esses
-três cadastros globais. E-mail de User e CPF de Patient são somente leitura na
-edição. A criação de Professional inclui sua conta de perfil PROFESSIONAL;
-a edição do cadastro profissional não altera credenciais.
-Agenda/Consultas: ADMIN opera globalmente; RECEPTIONIST agenda, confirma e
-cancela; PROFESSIONAL vê apenas os próprios horários/consultas, abre seus slots
-e inicia/conclui os próprios atendimentos. Schedule não oferece edição/exclusão.
-Appointment não oferece reagendamento: PUT altera somente statusId do catálogo
-real; DELETE cancela e mantém o registro. Datas e horas clínicas permanecem locais.
-Prontuários não possui DELETE. ADMIN não cria/edita conteúdo clínico e
-RECEPTIONIST não acessa MedicalRecords. PROFESSIONAL usa MedicalRecords e suas
-Appointments sem depender dos cadastros globais de Patients/Professionals.
-Dashboard não mostra total global de pacientes ao PROFESSIONAL.
-Listagens retornam arrays; filtro é local. Descrição/created podem ser nulos.
-Sucessos de mutação aparecem somente após a resposta da API. Falhas mantêm o
-formulário e disponibilizam message/details.
+As páginas carregam por rota com fallback de loading. O menu mobile, as tabelas
+com scroll local e os modais com foco/teclado foram homologados em Chrome real.
+`/schedules`, Settings e DesignSystem não são rotas do produto; URLs desconhecidas
+continuam exibindo a página 404. O catálogo demonstrativo e componentes isolados
+sem uso foram removidos; tokens e componentes funcionais permanecem em `src/`.
 
-## Verificar
+## Gates e CI
 
-```text
-npm run lint
-npm run build
-npm run smoke
+```sh
+bun run lint
+bun run build
+bun run smoke
 node scripts/smoke-agendamentos.mjs
 node scripts/smoke-clinica-dashboard.mjs
 ```
 
-`lint` é TypeScript (`tsc --noEmit`), não ESLint.
-O smoke usa Node, assert e esbuild já disponível no projeto, sem framework novo.
-Ele sobe um servidor HTTP descartável em loopback e verifica cliente/services,
-Bearer, contratos, CRUD, permissões da matriz, erros, cancelamento e isolamento
-entre sessões. Não usa backend, banco ou credenciais reais e não substitui
-validação em navegador com a API Spring Boot.
+Os mesmos scripts podem ser executados com `npm run`. `lint` verifica TypeScript
+(`tsc --noEmit`), sem ESLint. Smokes usam HTTP isolado/esbuild e não dependem de
+backend, banco, credenciais ou secrets; não substituem a homologação real.
 
-O aviso de chunk acima de 500 kB continua conhecido; otimização de carregamento
-fica para uma fase posterior.
+O workflow **Frontend validation** executa instalação congelada e esses cinco
+gates em PRs para `develop`/`main`, push em `develop` e disparo manual. Sua execução
+remota só poderá ser confirmada depois da publicação desta branch.
+
+## Deploy e release
+
+O workflow de GitHub Pages mantém push em `main` e disparo manual. Valida a
+configuração pública da API, executa lint/smokes, faz um único build e copia
+`dist/index.html` para `dist/404.html`. A base calculada no Actions é
+`/GestaoDeClinicas-Frontend-ProjetoFinal-maisPraTi/`.
+
+**Deploy funcional bloqueado até definir o ambiente real:** configure a variável
+Actions `VITE_API_URL` no ambiente `github-pages` (ou no repositório), com a URL
+HTTPS pública correta da API, incluindo sua base `/api`. O workflow anterior não
+injetava essa variável. O novo guard interrompe o deploy se ela estiver ausente,
+inválida, local ou usar um dos domínios de exemplo identificados. Essa validação
+é sintática; disponibilidade e configuração do ambiente ainda precisam ser
+confirmadas. Nenhuma URL de produção foi inventada nesta execução.
+
+O backend deve permitir a origem real do frontend publicado por
+`APP_CORS_ALLOWED_ORIGINS`. A homologação local do fallback não comprova o
+ambiente Pages remoto: seu documento de rota profunda responde 404, serve a SPA
+e permite ao Router resolver a rota. Assets e API devem responder normalmente.
+
+O Bloco 5 foi preparado somente localmente, sem push, PR, merge ou deploy. Uma
+futura PR `develop -> main` deverá revisar a release integral e os bloqueios de
+ambiente, preservando o histórico compartilhado.
+
+## Evidências
+
+- [Estabilização final e homologação](docs/ESTABILIZACAO_FINAL.md)
+- [Fundação e browser](docs/HOMOLOGACAO_BROWSER.md)
+- [Cadastros](docs/INTEGRACAO_CADASTROS.md)
+- [Agenda e consultas](docs/INTEGRACAO_AGENDAMENTOS.md)
+- [Prontuários e Dashboard](docs/INTEGRACAO_CLINICA_DASHBOARD.md)
+
+Relatórios anteriores registram o estado de cada rodada. O relatório de
+estabilização descreve as decisões e medidas atuais.

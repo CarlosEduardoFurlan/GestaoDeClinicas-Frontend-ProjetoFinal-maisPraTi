@@ -83,7 +83,7 @@ export function AppointmentFormModal({ schedules, appointments, initialSlot, ini
       {!optionsLoading && !optionsError && (!patients.items.length || !professionals.items.length) && <p className="text-sm text-slate-500">Cadastre paciente e profissional antes de agendar.</p>}
       {loadError && <div><p role="alert" className="text-red-700">{loadError}</p><Button type="button" variant="outline" disabled={pending} onClick={() => void refresh()}>Atualizar disponibilidade</Button></div>}
       {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}
-      <div className="flex justify-end gap-3">
+      <div className="flex flex-wrap justify-end gap-3">
         <Button type="button" variant="outline" disabled={pending} onClick={onClose}>Cancelar</Button>
         <Button type="submit" loading={pending} disabled={blocked || !allowed || !selected || !patientId}>Agendar consulta</Button>
       </div>

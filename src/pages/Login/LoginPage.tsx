@@ -65,7 +65,7 @@ export function LoginPage() {
           </form>
         </div>
       </div>
-      <footer className="text-xs text-slate-400 mt-8">Autenticação de Usuário • Acesso Restrito</footer>
+      <footer className="text-xs text-slate-500 mt-8">Autenticação de Usuário • Acesso Restrito</footer>
     </div>
   );
 }

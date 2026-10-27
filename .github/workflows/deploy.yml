@@ -17,6 +17,8 @@ concurrency:
 
 jobs:
   deploy:
+    env:
+      VITE_API_URL: ${{ vars.VITE_API_URL }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -30,9 +32,28 @@ jobs:
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Validate production API configuration
+        run: node scripts/validate-deploy.mjs
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run lint
+
+      - name: Isolated smoke tests
+        run: |
+          bun run smoke
+          node scripts/smoke-agendamentos.mjs
+          node scripts/smoke-clinica-dashboard.mjs
 
       - name: Build site
         run: bun run build

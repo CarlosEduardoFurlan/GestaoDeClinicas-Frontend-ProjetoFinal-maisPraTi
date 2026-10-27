@@ -11,7 +11,6 @@ export const routeProfiles: Record<string, readonly Profile[]> = {
   '/patients': administrative,
   '/professionals': administrative,
   '/specialties': all,
-  '/schedules': all,
   '/medical-records': ['ADMIN', 'PROFESSIONAL'],
   '/users': ['ADMIN'],
 };

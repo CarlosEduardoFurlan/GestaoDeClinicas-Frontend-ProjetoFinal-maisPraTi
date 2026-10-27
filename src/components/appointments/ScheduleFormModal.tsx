@@ -61,7 +61,7 @@ export function ScheduleFormModal({ initialDate, onClose, onSaved, refresh }: {
       {admin && professionals.loadError && <div><p role="alert" className="text-red-700">{professionals.loadError}</p><Button type="button" variant="outline" onClick={professionals.retry}>Recarregar profissionais</Button></div>}
       {admin && !professionals.loading && !professionals.loadError && !professionals.items.length && <p>Cadastre um profissional para abrir horários.</p>}
       {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}
-      <div className="flex justify-end gap-3">
+      <div className="flex flex-wrap justify-end gap-3">
         <Button type="button" variant="outline" disabled={pending} onClick={onClose}>Cancelar</Button>
         <Button type="submit" loading={pending} disabled={!allowed || (admin && (professionals.loading || !!professionals.loadError || !professionals.items.length))}>Salvar horário</Button>
       </div>

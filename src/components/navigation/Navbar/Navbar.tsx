@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 
-export function Navbar() {
+export function Navbar({ menuOpen, onMenuToggle }: { menuOpen: boolean; onMenuToggle: () => void }) {
   const { user, logout } = useAuth();
   const { info } = useToast();
   const navigate = useNavigate();
@@ -28,9 +28,14 @@ export function Navbar() {
   };
   
   return (
-    <header className="h-[var(--navbar-height)] bg-background flex items-center justify-end px-6 sticky top-0 z-10">
+    <header className="h-[var(--navbar-height)] bg-background flex items-center justify-between lg:justify-end px-4 sm:px-6 sticky top-0 z-10">
+      <button type="button" aria-label="Abrir menu de navegação" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={onMenuToggle} className="lg:hidden p-2 rounded-lg hover:bg-slate-100"><Menu aria-hidden="true" className="w-6 h-6" /></button>
       <div className="relative" ref={dropdownRef}>
         <button 
+          aria-label={`Menu da conta de ${user?.name ?? 'usuário'}`}
+          aria-expanded={dropdownOpen}
+          aria-controls="account-menu"
+          onKeyDown={(event) => { if (event.key === 'Escape') setDropdownOpen(false); }}
           onClick={() => setDropdownOpen(!dropdownOpen)}
           className="flex items-center gap-3 hover:opacity-80 transition-opacity p-1.5 rounded-xl cursor-pointer"
         >
@@ -44,7 +49,7 @@ export function Navbar() {
         </button>
 
         {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+          <div id="account-menu" onKeyDown={(event) => { if (event.key === 'Escape') { setDropdownOpen(false); dropdownRef.current?.querySelector('button')?.focus(); } }} className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left"
