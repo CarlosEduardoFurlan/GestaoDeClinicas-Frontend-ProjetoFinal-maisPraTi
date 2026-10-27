@@ -7,6 +7,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { PatientService } from '../../services/patient.service';
 import { errorDescription } from '../../lib/api-error';
 import { PatientFormModal } from './PatientFormModal';
+import { PatientAppointments } from './PatientAppointments';
+import { PatientClinicalRecords } from './PatientClinicalRecords';
 import type { PatientResponse } from '../../types';
 
 export function PatientDetailsPage() {
@@ -39,8 +41,7 @@ export function PatientDetailsPage() {
         {activeTab === 'pessoais' ? <><h2 className="font-bold text-lg mb-5">Identificação, contato e endereço</h2><dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-sm">{[
           ['Nome', patient.name], ['CPF', patient.cpf], ['Data de nascimento', patient.dateBirth.split('-').reverse().join('/')], ['Gênero', patient.gender === 'F' ? 'Feminino' : patient.gender === 'M' ? 'Masculino' : patient.gender], ['Telefone', patient.telephone], ['Celular', patient.cellPhone], ['E-mail', patient.email], ['Logradouro', patient.address.address], ['Número', patient.address.number], ['Complemento', patient.address.complement], ['Bairro', patient.address.district], ['Cidade', patient.address.city], ['UF', patient.address.uf], ['CEP', patient.address.zipCode],
         ].map(([label, value]) => <div key={label}><dt className="text-slate-500 mb-1">{label}</dt><dd className="font-semibold text-slate-900">{value ?? '—'}</dd></div>)}</dl></> :
-          // Abas preservadas para Appointment/MedicalRecord em etapas futuras. Sem histórico fictício associado ao UUID real.
-          <p className="text-sm text-slate-500 py-6">{activeTab === 'consultas' ? 'As consultas deste paciente ainda não estão disponíveis.' : 'Os registros clínicos deste paciente ainda não estão disponíveis.'}</p>}
+          activeTab === 'consultas' ? <PatientAppointments key={patient.id} patientId={patient.id} /> : canReadRecords && <PatientClinicalRecords key={patient.id} patientId={patient.id} />}
       </div>
       {canWrite && editing && <PatientFormModal key={patient.id} patient={patient} onClose={() => setEditing(false)} onSaved={(saved) => { setPatient(saved); setEditing(false); }} />}
     </>}
