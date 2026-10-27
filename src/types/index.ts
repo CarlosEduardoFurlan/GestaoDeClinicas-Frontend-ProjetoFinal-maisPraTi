@@ -1,4 +1,4 @@
-// DTOs do backend develop 5e2f942. Datas e horas usam os formatos ISO da API.
+// DTOs conferidos com backend develop 9daa1c5. Datas/horas clínicas são locais, sem UTC.
 export type UUID = string;
 export type Profile = 'ADMIN' | 'RECEPTIONIST' | 'PROFESSIONAL';
 export interface ApiErrorResponse {
