@@ -1,7 +1,46 @@
 ﻿# Bloco 3 — Schedule, Appointment, Agenda e Consultas
 
 Data: 26/10/2026. Status: **BLOCO 3 INTEGRADO E PRONTO PARA REVISÃO**.
-Execução local: sem push, PR, merge ou publicação.
+A etapa inicial foi concluída localmente. A publicação foi autorizada na rodada
+seguinte, após correção backend separada e revalidação específica.
+
+## Consolidação: Schedule duplicado uniformizado como 409
+
+Nova baseline backend develop: `e183b6bc490af6b60a11b0fb1604986c1ca40e66`.
+[PR backend #19](https://github.com/CarlosEduardoFurlan/GestaoDeClinicas-Backend-ProjetoFinal-maisPraTi/pull/19),
+commit `1f6ef02a58df4f7157ec4623aa141fa77be656b1`, mergeada após CI aprovado.
+
+ScheduleService passou a lançar ConflictException no pre-check de duplicidade,
+com a mesma mensagem. Pre-check, V13, migrations, DTOs, permissões e handler
+permaneceram intactos. Reprodução antes da correção: teste exigindo 409 recebeu
+400. Depois: 282 testes passaram em Maven clean verify com PostgreSQL18 exclusivo,
+Flyway V1–V15 e JPA validate. Constraint real e dois requests concorrentes também
+confirmaram 409 para a tentativa perdedora. Relatório backend:
+docs/SCHEDULE_DUPLICATE_CONFLICT.md.
+
+O código de aplicação e os testes frontend não mudaram para adaptar 400 a 409.
+Somente README e este relatório foram atualizados na consolidação. Revalidação
+específica, sem repetir a homologação completa dos três perfis:
+
+- Chrome 156.0.8078.48, ADMIN real, nova develop backend e branch do Bloco 3.
+- POST Schedule válido201 e duplicado sequencial409; formulário, profissional,
+  data e hora preservados, mensagem controlada, sem falso sucesso ou duplicação.
+- Schedule/Appointment recarregados após409; sessão continua ativa.
+- Agenda e Consultas carregam o mesmo Appointment real criado pela UI.
+- GET schedules/appointments/statuses200; POST Appointment201, status automático
+  Agendada; PUT com statusId real para Confirmada.
+- Cancelamento lógico DELETE204 preserva Cancelada nas duas telas e libera slot.
+- ADMIN/RECEPTIONIST reservando Appointment em paralelo: exatamente um201/um409.
+- Lint, build, npm run smoke e node scripts/smoke-agendamentos.mjs aprovados.
+- Console sem exceções React/Promise, Axios cru ou regressões funcionais; Bearer
+  confirmado. Identificado somente404 de /favicon.ico, recurso opcional ausente
+  também na baseline, separado explicitamente da auditoria funcional.
+
+Permanece o aviso conhecido de chunk >500 kB. Nenhuma dependência permanente,
+mudança de package.json/bun.lock, migration ou alteração de módulos posteriores.
+Não há workflow frontend para PR/develop; o existente publica Pages somente em
+main ou manualmente. Nenhum deploy foi acionado. Após merge frontend, a develop
+será novamente validada com lint/build e smoke mínimo de browser real.
 
 ## Estado inicial e baselines
 
@@ -244,7 +283,7 @@ ou nos commits.
 Capturas de Agenda ADMIN, formulário de conflito 409 e tabela PROFESSIONAL foram
 inspecionadas. Identidade visual mantida; nenhuma mudança de sidebar/header.
 
-## Divergência backend encontrada
+## Histórico da divergência backend, resolvida na PR #19
 
 Schedule duplicado sequencial retorna **400**, mensagem **Horário já cadastrado
 para este profissional.**, pelo BusinessException explícito em ScheduleService.
@@ -252,8 +291,8 @@ O roteiro deste Bloco 3 esperava 409. Reproduzido nos gates de Agenda e completo
 Não foi alterado o backend, nem convertido artificialmente 400 em 409 no cliente.
 A UI trata o erro normalizado e mantém o formulário.
 
-Esta diferença de status HTTP não impede criar/consumir Schedule nem usar os
-slots. Deve ser revisada separadamente, caso se deseje uniformizar o contrato.
+Esta diferença foi observada na etapa inicial e corrigida separadamente na
+consolidação acima, com nova baseline e 409 revalidado sem alteração frontend.
 O fluxo de dupla reserva de Appointment retorna o **409 esperado**, inclusive
 sob concorrência real, e foi homologado na UI. Nenhum bug backend que torne o
 contrato impossível de consumir foi encontrado; nenhum fluxo foi mascarado.
@@ -277,6 +316,8 @@ clínica. AppContext global permanece. Não foi iniciada a etapa seguinte.
 - 1eecc62 — test: cobre disponibilidade estados e datas locais.
 - Commit docs: registra integracao de agendamentos — README e este relatório;
   hash final disponível em git log.
+- Commit docs: registra revalidacao de schedule duplicado 409 — nova baseline
+  no README e resultados específicos neste relatório.
 
 ```text
 src/types/index.ts
@@ -300,10 +341,12 @@ docs/INTEGRACAO_AGENDAMENTOS.md
 
 ## Bloqueios e próxima etapa
 
-Nenhum bloqueio frontend pendente. Divergência 400/409 de Schedule duplicado
-registrada para revisão, com backend intacto. Build mantém aviso conhecido de
-bundle. Itens locais conhecidos seguem fora dos commits.
+Nenhum bloqueio frontend pendente. Divergência 400/409 resolvida no backend e
+revalidada; código frontend preservado. Build mantém aviso conhecido de bundle.
+404 opcional do favicon preexistente registrado, sem regressão funcional.
+Itens locais conhecidos seguem fora dos commits.
 
-Revisar o Bloco 3 e a decisão de status HTTP do Schedule antes de autorizar
-publicação. Sem push, PR ou merge nesta execução. Não iniciar MedicalRecord,
-Prontuários, Dashboard ou Registros Clínicos de PatientDetails.
+A publicação e o merge do Bloco 3 foram autorizados após os gates desta rodada.
+A etapa inicial sem publicação permanece em commits separados. Parar após
+validar a develop consolidada. Não iniciar MedicalRecord, Prontuários, Dashboard
+ou Registros Clínicos de PatientDetails.

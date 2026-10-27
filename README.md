@@ -1,7 +1,7 @@
 ﻿# +PraClinic — Frontend
 
 React + TypeScript + Vite. Contrato de referência: backend `develop` em
-`9daa1c5567774ba9aa6726082f3747b01fab1343`, base `/api`.
+`e183b6bc490af6b60a11b0fb1604986c1ca40e66`, base `/api`.
 
 ## Estado desta rodada
 
@@ -23,7 +23,7 @@ A fundação foi homologada em Chrome real com backend/PostgreSQL isolados:
 [resultados e limites da homologação](docs/HOMOLOGACAO_BROWSER.md).
 O Bloco 2 tem contratos, permissões, gates e limitações registrados em
 [Integração dos cadastros](docs/INTEGRACAO_CADASTROS.md).
-O Bloco 3 foi homologado localmente, sem publicação, e está descrito em
+O Bloco 3, sua homologação e a revalidação de Schedule duplicado 409 estão descritos em
 [Integração de agendamentos](docs/INTEGRACAO_AGENDAMENTOS.md).
 
 ## Executar
