@@ -103,13 +103,13 @@ export function UsersPage() {
         <div><label htmlFor="user-password" className="block text-xs font-bold mb-2">Senha</label><input id="user-password" type="password" required maxLength={20} autoComplete="new-password" disabled={pending} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className={fieldClass} /></div>
         <div><label htmlFor="user-profile" className="block text-xs font-bold mb-2">Perfil de Acesso</label><select id="user-profile" required disabled={pending} value={form.profile} onChange={(event) => setForm({ ...form, profile: event.target.value as Profile })} className={fieldClass}>{Object.entries(profiles).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
         {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}
-        <div className="flex justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={() => { setIsOpen(false); setForm({ ...emptyForm }); }}>Cancelar</Button><Button type="submit" loading={pending}>Salvar Usuário</Button></div>
+        <div className="flex flex-wrap justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={() => { setIsOpen(false); setForm({ ...emptyForm }); }}>Cancelar</Button><Button type="submit" loading={pending}>Salvar Usuário</Button></div>
       </form>
     </Modal>}
     {canWrite && <Modal isOpen={!!deleting} onClose={() => { if (!pending) setDeleting(null); }} title="Excluir Usuário">
       <p className="mb-4">Excluir o usuário {deleting?.name}? O cadastro profissional vinculado também pode ser excluído.</p>
       {formError && <p role="alert" className="mb-4 text-sm text-red-700">{formError}</p>}
-      <div className="flex justify-end gap-3"><Button variant="outline" disabled={pending} onClick={() => setDeleting(null)}>Cancelar</Button><Button variant="danger" loading={pending} onClick={() => void remove()}>Excluir</Button></div>
+      <div className="flex flex-wrap justify-end gap-3"><Button variant="outline" disabled={pending} onClick={() => setDeleting(null)}>Cancelar</Button><Button variant="danger" loading={pending} onClick={() => void remove()}>Excluir</Button></div>
     </Modal>}
   </div>;
 }

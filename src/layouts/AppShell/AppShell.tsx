@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { layoutConfig } from "../../config/layout";
 import { Sidebar } from "../../components/navigation/Sidebar/Sidebar";
@@ -8,6 +8,7 @@ import { useAuth } from "../../contexts/AuthContext";
 
 export function AppShell() {
   const { isAuthenticated } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -23,10 +24,11 @@ export function AppShell() {
         '--content-padding': `${layoutConfig.content.padding}px`,
       } as React.CSSProperties}
     >
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0" style={{ marginLeft: "var(--sidebar-width)" }}>
-        <Navbar />
-        <main className="flex-1 w-full max-w-[var(--content-max-width)] mx-auto p-[var(--content-padding)]">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] bg-white p-3 rounded-lg">Ir para o conteúdo</a>
+      <Sidebar mobileOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-[var(--sidebar-width)]">
+        <Navbar menuOpen={menuOpen} onMenuToggle={() => setMenuOpen((value) => !value)} />
+        <main id="main-content" tabIndex={-1} className="flex-1 min-w-0 w-full max-w-[var(--content-max-width)] mx-auto p-4 sm:p-6 lg:p-[var(--content-padding)]">
           <Outlet />
         </main>
         <Footer />

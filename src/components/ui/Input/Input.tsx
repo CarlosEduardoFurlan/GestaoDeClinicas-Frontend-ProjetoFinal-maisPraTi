@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { cn } from "../../../lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -7,6 +7,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, error, ...props }, ref) => {
+    const errorId = useId();
     return (
       <div className="w-full flex flex-col gap-1.5">
         <input
@@ -17,8 +18,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className
           )}
           {...props}
+          aria-invalid={error ? true : props['aria-invalid']}
+          aria-describedby={[props['aria-describedby'], error ? errorId : undefined].filter(Boolean).join(' ') || undefined}
         />
-        {error && <span className="text-xs font-medium text-danger">{error}</span>}
+        {error && <span id={errorId} role="alert" className="text-xs font-medium text-danger">{error}</span>}
       </div>
     );
   }

@@ -172,14 +172,14 @@ export function SpecialtiesPage() {
             <textarea id="specialty-description" rows={4} disabled={pending} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" />
           </div>
           {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}
-          <div className="flex justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={() => setIsModalOpen(false)}>Cancelar</Button><Button type="submit" loading={pending}>{editing ? 'Salvar Especialidade' : 'Cadastrar Especialidade'}</Button></div>
+          <div className="flex flex-wrap justify-end gap-3"><Button type="button" variant="outline" disabled={pending} onClick={() => setIsModalOpen(false)}>Cancelar</Button><Button type="submit" loading={pending}>{editing ? 'Salvar Especialidade' : 'Cadastrar Especialidade'}</Button></div>
         </form>
       </Modal>}
 
       {canWrite && <Modal isOpen={!!deleting} onClose={() => { if (!pending) setDeleting(null); }} title="Excluir Especialidade">
         <p className="mb-4">Excluir a especialidade {deleting?.name}?</p>
         {formError && <p role="alert" className="mb-4 text-sm text-red-700">{formError}</p>}
-        <div className="flex justify-end gap-3"><Button variant="outline" disabled={pending} onClick={() => setDeleting(null)}>Cancelar</Button><Button variant="danger" loading={pending} onClick={() => void handleDelete()}>Excluir</Button></div>
+        <div className="flex flex-wrap justify-end gap-3"><Button variant="outline" disabled={pending} onClick={() => setDeleting(null)}>Cancelar</Button><Button variant="danger" loading={pending} onClick={() => void handleDelete()}>Excluir</Button></div>
       </Modal>}
     </div>
   );
