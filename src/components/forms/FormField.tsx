@@ -1,4 +1,3 @@
-import React from 'react';
 import { Input, type InputProps } from '../ui/Input/Input';
 
 export function FormField({ label, id, ...props }: InputProps & { label: string; id: string }) {
