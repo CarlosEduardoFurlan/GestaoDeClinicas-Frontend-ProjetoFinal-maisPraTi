@@ -1,225 +1,51 @@
-import React from "react";
-import { Calendar, Clock, Users, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "../../components/ui/Button/Button";
+﻿import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, Clock, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '../../components/ui/Button/Button';
+import { Spinner } from '../../components/ui/Spinner/Spinner';
+import { StatusBadge } from '../../components/appointments/StatusBadge';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDashboardData } from '../../hooks/useDashboardData';
+import { dashboardAppointments } from '../../lib/dashboard';
+import { displayDate, displayTime, localDate, shiftDate, weekDates } from '../../lib/appointments';
 
 export function DashboardPage() {
-  const { hasRole } = useAuth();
-  const appointments = [
-    {
-      time: "08:30",
-      period: "Manhã",
-      patient: "Mariana Costa Silveira",
-      doctor: "Dr. Ricardo Alves",
-      specialty: "Clínica Geral",
-      status: "Concluída",
-    },
-    {
-      time: "09:15",
-      period: "Manhã",
-      patient: "Carlos Eduardo Nogueira",
-      doctor: "Dra. Camila Nogueira",
-      specialty: "Pediatria",
-      status: "Em atendimento",
-    },
-    {
-      time: "10:00",
-      period: "Manhã",
-      patient: "Beatriz Lima",
-      doctor: "Dr. Ricardo Alves",
-      specialty: "Clínica Geral",
-      status: "Confirmada",
-    },
-    {
-      time: "11:00",
-      period: "Manhã",
-      patient: "Fernando Antunes Rocha",
-      doctor: "Dra. Camila Nogueira",
-      specialty: "Pediatria",
-      status: "Agendada",
-    },
-    {
-      time: "14:00",
-      period: "Tarde",
-      patient: "Juliana Mendes Viana",
-      doctor: "Dr. Ricardo Alves",
-      specialty: "Clínica Geral",
-      status: "Agendada",
-    }
+  const { hasRole } = useAuth(); const canReadPatients = hasRole(['ADMIN', 'RECEPTIONIST']);
+  const data = useDashboardData(canReadPatients);
+  const navigate = useNavigate();
+  const [now, setNow] = useState(() => new Date());
+  const [weekOffset, setWeekOffset] = useState(0);
+  useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 30000); return () => window.clearInterval(timer); }, []);
+  const derived = dashboardAppointments(data.appointments, now);
+  const days = weekDates(shiftDate(localDate(now), weekOffset * 7));
+  const metrics = [
+    { key: 'today', label: 'Consultas Hoje', value: derived.today.length, suffix: 'consultas', Icon: Calendar },
+    { key: 'upcoming', label: 'Próximas Consultas', value: derived.upcoming.length, suffix: 'consultas', Icon: Clock },
+    ...(canReadPatients && data.patients ? [{ key: 'patients', label: 'Total de Pacientes', value: data.patients.length, suffix: 'cadastrados', Icon: Users }] : []),
   ];
 
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "Concluída":
-        return "bg-slate-200 text-slate-700 font-semibold";
-      case "Em atendimento":
-        return "bg-blue-100 text-primary font-semibold";
-      case "Confirmada":
-        return "bg-teal-100 text-teal-700 font-semibold";
-      case "Agendada":
-        return "bg-purple-100 text-purple-700 font-semibold";
-      default:
-        return "bg-slate-100 text-slate-700 font-semibold";
-    }
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
-          <p className="text-slate-500 mt-1">Visão geral dos atendimentos de hoje</p>
-        </div>
-        <div className="flex gap-4 items-center">
-          <div className="flex items-center gap-2 bg-blue-50 text-primary px-4 py-2 rounded-full text-sm font-semibold">
-            <Calendar className="w-4 h-4" />
-            Hoje, 24 de Outubro
-          </div>
-          {hasRole(['ADMIN', 'RECEPTIONIST']) && <Button variant="primary" className="rounded-full px-6 font-semibold shadow-sm">
-            + Nova Consulta
-          </Button>}
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-[1.25rem] p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">Consultas Hoje</span>
-            <div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center">
-              <Calendar className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-4xl font-extrabold text-slate-900 tracking-tight">12</span>
-            <span className="text-sm text-slate-500 font-medium">agendadas</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-[1.25rem] p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">Próximas Consultas</span>
-            <div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-4xl font-extrabold text-primary tracking-tight">4</span>
-            <span className="text-sm text-slate-500 font-medium">agendadas</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-[1.25rem] p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">Total de Pacientes</span>
-            <div className="w-8 h-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-4xl font-extrabold text-slate-900 tracking-tight">348</span>
-            <span className="text-sm text-slate-500 font-medium">cadastrados</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Today's Appointments List */}
-        <div className="lg:col-span-2 bg-white rounded-[1.25rem] p-6 shadow-sm border border-slate-100">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">Consultas de Hoje</h2>
-              <p className="text-sm text-slate-500">Listagem dos atendimentos do dia</p>
-            </div>
-            <div className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-semibold">
-              5 horários listados
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {appointments.map((apt, i) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-slate-50/80 rounded-[1.25rem] border border-slate-100/50">
-                <div className="flex items-center gap-6">
-                  <div className="flex flex-col items-center justify-center w-12 border-r border-slate-200 pr-6">
-                    <span className="text-base font-bold text-slate-900 leading-tight">{apt.time}</span>
-                    <span className="text-[11px] font-bold text-primary">{apt.period}</span>
-                  </div>
-                  <div className="pl-2">
-                    <h3 className="font-bold text-slate-900 text-base">{apt.patient}</h3>
-                    <div className="flex items-center text-xs text-slate-500 mt-1 font-medium">
-                      <StethoscopeIcon className="w-3.5 h-3.5 mr-1 text-slate-400" />
-                      {apt.doctor} • {apt.specialty}
-                    </div>
-                  </div>
-                </div>
-                <div className={`px-4 py-1.5 rounded-full text-xs ${getStatusStyle(apt.status)}`}>
-                  {apt.status}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Calendar Sidebar */}
-        <div className="bg-white rounded-[1.25rem] p-6 shadow-sm border border-slate-100">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">Esta Semana</h2>
-              <p className="text-sm text-slate-500">Outubro de 2024</p>
-            </div>
-            <div className="flex gap-1 text-slate-400">
-              <button className="p-1 hover:bg-slate-50 rounded-full transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-              <button className="p-1 hover:bg-slate-50 rounded-full transition-colors"><ChevronRight className="w-4 h-4" /></button>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center text-center mt-8">
-            <div className="flex flex-col gap-3">
-              <span className="text-xs font-semibold text-slate-500">Seg</span>
-              <span className="text-sm font-bold text-slate-900">21</span>
-            </div>
-            <div className="flex flex-col gap-3">
-              <span className="text-xs font-semibold text-slate-500">Ter</span>
-              <span className="text-sm font-bold text-slate-900">22</span>
-            </div>
-            <div className="flex flex-col gap-3">
-              <span className="text-xs font-semibold text-slate-500">Qua</span>
-              <span className="text-sm font-bold text-slate-900">23</span>
-            </div>
-            <div className="flex flex-col items-center bg-primary text-white p-3 rounded-2xl shadow-md transform -translate-y-1">
-              <span className="text-xs font-bold uppercase tracking-wider mb-1">QUI</span>
-              <span className="text-base font-extrabold mb-1">24</span>
-              <div className="w-1 h-1 bg-white rounded-full"></div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <span className="text-xs font-semibold text-slate-500">Sex</span>
-              <span className="text-sm font-bold text-slate-900">25</span>
-            </div>
-          </div>
-        </div>
-      </div>
+  return <div className="max-w-6xl mx-auto space-y-8">
+    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+      <div><h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1><p className="text-slate-500 mt-1">Visão geral dos atendimentos de hoje</p></div>
+      <div className="flex flex-wrap gap-3 items-center"><div className="flex items-center gap-2 bg-blue-50 text-primary px-4 py-2 rounded-full text-sm font-semibold"><Calendar className="w-4 h-4" /><span data-local-date={localDate(now)}>Hoje, {new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(now)}</span></div><Button variant="outline" disabled={data.loading} onClick={() => { setNow(new Date()); void data.refresh(); }}>Atualizar</Button>{canReadPatients && <Button className="rounded-full" onClick={() => navigate('/consultations')}>+ Nova Consulta</Button>}</div>
     </div>
-  );
-}
-
-function StethoscopeIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
-      <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
-      <circle cx="20" cy="10" r="2" />
-    </svg>
-  );
+    {data.loading ? <div role="status" className="p-10 flex justify-center gap-3"><Spinner />Carregando dashboard...</div> : data.loadError ? <div className="bg-white rounded-xl p-6 space-y-3"><p role="alert" className="text-red-700">{data.loadError}</p><Button variant="outline" onClick={() => void data.refresh()}>Tentar novamente</Button></div> : <>
+      <div className={`grid grid-cols-1 ${canReadPatients ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6`}>{metrics.map(({ key, label, value, suffix, Icon }) => <section key={key} aria-label={label} className="bg-white rounded-[1.25rem] p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div className="flex justify-between items-start"><h2 className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">{label}</h2><div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center"><Icon className="w-4 h-4" /></div></div><div className="mt-4 flex items-baseline gap-2"><span data-metric={key} className="text-4xl font-extrabold text-slate-900 tracking-tight">{value}</span><span className="text-sm text-slate-500 font-medium">{suffix}</span></div>
+      </section>)}</div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section aria-label="Consultas de Hoje" className="lg:col-span-2 bg-white rounded-[1.25rem] p-6 shadow-sm border border-slate-100">
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-6"><div><h2 className="text-lg font-bold text-slate-900">Consultas de Hoje</h2><p className="text-sm text-slate-500">Listagem dos atendimentos do dia</p></div><span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-semibold">{derived.today.length} consultas</span></div>
+          {!derived.today.length ? <p className="py-6 text-sm text-slate-500">Nenhuma consulta para hoje.</p> : <div className="space-y-4">{derived.today.map((appointment) => <article key={appointment.id} data-appointment-id={appointment.id} className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50/80 rounded-[1.25rem] border border-slate-100/50">
+            <div className="flex items-center gap-5"><span className="text-base font-bold text-slate-900 border-r border-slate-200 pr-5">{displayTime(appointment.time)}</span><div><h3 className="font-bold text-slate-900">{appointment.patientName}</h3><p className="text-xs text-slate-500 mt-1 font-medium">{appointment.professionalName}</p></div></div><StatusBadge status={appointment.statusName} />
+          </article>)}</div>}
+        </section>
+        <section aria-label="Calendário semanal" className="bg-white rounded-[1.25rem] p-6 shadow-sm border border-slate-100">
+          <div className="flex justify-between items-start gap-3 mb-6"><div><h2 className="text-lg font-bold text-slate-900">{weekOffset === 0 ? 'Esta Semana' : 'Semana selecionada'}</h2><p className="text-xs text-slate-500 mt-1" data-week-range>{displayDate(days[0])} — {displayDate(days[6])}</p></div><div className="flex gap-1 text-slate-400"><button aria-label="Semana anterior" onClick={() => setWeekOffset((value) => value - 1)} className="p-1 hover:bg-slate-50 rounded-full"><ChevronLeft className="w-4 h-4" /></button><button aria-label="Próxima semana" onClick={() => setWeekOffset((value) => value + 1)} className="p-1 hover:bg-slate-50 rounded-full"><ChevronRight className="w-4 h-4" /></button></div></div>
+          <div className="grid grid-cols-7 gap-1 text-center mt-8">{days.map((day, index) => <div key={day} data-calendar-date={day} aria-current={day === localDate(now) ? 'date' : undefined} className={`flex flex-col gap-3 py-3 rounded-xl ${day === localDate(now) ? 'bg-primary text-white shadow-md' : 'text-slate-600'}`}><span className="text-[10px] font-semibold">{['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][index]}</span><span className="text-sm font-bold">{day.slice(-2)}</span></div>)}</div>
+          {weekOffset !== 0 && <Button variant="ghost" size="sm" className="mt-4" onClick={() => setWeekOffset(0)}>Semana atual</Button>}
+        </section>
+      </div>
+    </>}
+  </div>;
 }

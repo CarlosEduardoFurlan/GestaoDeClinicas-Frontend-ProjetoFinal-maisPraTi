@@ -13,8 +13,9 @@ import { availableSchedules, displayTime, timeKey } from '../../lib/appointments
 import { errorDescription, normalizeApiError } from '../../lib/api-error';
 import type { AppointmentResponse, ScheduleResponse } from '../../types';
 
-export function AppointmentFormModal({ schedules, appointments, initialSlot, loading, loadError, refresh, onSaved, onClose }: {
+export function AppointmentFormModal({ schedules, appointments, initialSlot, initialPatientId, loading, loadError, refresh, onSaved, onClose }: {
   schedules: ScheduleResponse[]; appointments: AppointmentResponse[]; initialSlot?: ScheduleResponse;
+  initialPatientId?: string;
   loading: boolean; loadError: string | null; refresh: () => Promise<boolean>;
   onSaved: (saved: AppointmentResponse) => void; onClose: () => void;
 }) {
@@ -22,7 +23,7 @@ export function AppointmentFormModal({ schedules, appointments, initialSlot, loa
   const allowed = hasRole(['ADMIN', 'RECEPTIONIST']);
   const patients = useApiList(PatientService.getAll);
   const professionals = useApiList(ProfessionalService.getAll);
-  const [patientId, setPatientId] = useState('');
+  const [patientId, setPatientId] = useState(initialPatientId ?? '');
   const [professionalId, setProfessionalId] = useState(initialSlot?.professionalId ?? '');
   const [date, setDate] = useState(initialSlot?.date ?? '');
   const [time, setTime] = useState(initialSlot?.time ?? '');
@@ -59,7 +60,7 @@ export function AppointmentFormModal({ schedules, appointments, initialSlot, loa
   return <Modal isOpen title="Nova Consulta" onClose={() => { if (!pending) onClose(); }}>
     <form onSubmit={save} aria-busy={pending} className="space-y-4">
       <fieldset disabled={pending || blocked} className="space-y-4">
-        <SelectField id="appointment-patient" label="Paciente" required value={patientId} onChange={(event) => setPatientId(event.target.value)}>
+        <SelectField id="appointment-patient" label="Paciente" required disabled={!!initialPatientId} value={patientId} onChange={(event) => setPatientId(event.target.value)}>
           <option value="">Selecione o paciente</option>
           {patients.items.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
         </SelectField>

@@ -10,14 +10,15 @@ logout, rotas/menus por perfil, CRUD de Especialidades, Usuários e Profissionai
 além de criação, atualização, listagem e detalhes cadastrais de Pacientes.
 Schedule fornece os horários reais; Agenda e Consultas consomem Appointment
 para criação, visualização, transições de status e cancelamento lógico.
+Prontuários usa MedicalRecord real (Appointment + notes), com autoria exclusiva
+do PROFESSIONAL sobre consultas próprias e leitura global para ADMIN.
+PatientDetails tem consultas reais e leitura de registros clínicos para ADMIN.
+Dashboard deriva indicadores de Appointments e, quando autorizado, Patients.
 
-Prontuários e Dashboard ainda usam demonstrações locais. Seus dados não
-representam o backend. As abas clínicas nos detalhes do
-paciente preservam sua estrutura, com indicação de indisponibilidade e sem
-associar histórico fictício ao paciente real.
 Agenda e Consultas são duas visualizações do mesmo recurso Appointment.
 O catálogo DesignSystem permanece no código, sem rota funcional. Settings não é
-um módulo disponível.
+um módulo disponível. A rota técnica /schedules ainda é um placeholder fora do
+menu; disponibilidade já funciona na Agenda. Essa rota será revisada no Bloco 5.
 
 A fundação foi homologada em Chrome real com backend/PostgreSQL isolados:
 [resultados e limites da homologação](docs/HOMOLOGACAO_BROWSER.md).
@@ -25,6 +26,8 @@ O Bloco 2 tem contratos, permissões, gates e limitações registrados em
 [Integração dos cadastros](docs/INTEGRACAO_CADASTROS.md).
 O Bloco 3, sua homologação e a revalidação de Schedule duplicado 409 estão descritos em
 [Integração de agendamentos](docs/INTEGRACAO_AGENDAMENTOS.md).
+O Bloco 4, sua homologação e a revisão para publicação estão registrados em:
+[Integração clínica e Dashboard](docs/INTEGRACAO_CLINICA_DASHBOARD.md).
 
 ## Executar
 
@@ -92,6 +95,10 @@ cancela; PROFESSIONAL vê apenas os próprios horários/consultas, abre seus slo
 e inicia/conclui os próprios atendimentos. Schedule não oferece edição/exclusão.
 Appointment não oferece reagendamento: PUT altera somente statusId do catálogo
 real; DELETE cancela e mantém o registro. Datas e horas clínicas permanecem locais.
+Prontuários não possui DELETE. ADMIN não cria/edita conteúdo clínico e
+RECEPTIONIST não acessa MedicalRecords. PROFESSIONAL usa MedicalRecords e suas
+Appointments sem depender dos cadastros globais de Patients/Professionals.
+Dashboard não mostra total global de pacientes ao PROFESSIONAL.
 Listagens retornam arrays; filtro é local. Descrição/created podem ser nulos.
 Sucessos de mutação aparecem somente após a resposta da API. Falhas mantêm o
 formulário e disponibilizam message/details.
@@ -103,6 +110,7 @@ npm run lint
 npm run build
 npm run smoke
 node scripts/smoke-agendamentos.mjs
+node scripts/smoke-clinica-dashboard.mjs
 ```
 
 `lint` é TypeScript (`tsc --noEmit`), não ESLint.
