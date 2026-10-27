@@ -26,7 +26,7 @@ O Bloco 2 tem contratos, permissões, gates e limitações registrados em
 [Integração dos cadastros](docs/INTEGRACAO_CADASTROS.md).
 O Bloco 3, sua homologação e a revalidação de Schedule duplicado 409 estão descritos em
 [Integração de agendamentos](docs/INTEGRACAO_AGENDAMENTOS.md).
-O Bloco 4 está integrado e homologado localmente, sem publicação:
+O Bloco 4, sua homologação e a revisão para publicação estão registrados em:
 [Integração clínica e Dashboard](docs/INTEGRACAO_CLINICA_DASHBOARD.md).
 
 ## Executar

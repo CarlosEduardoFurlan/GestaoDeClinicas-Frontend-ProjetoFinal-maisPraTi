@@ -1,8 +1,31 @@
 ﻿# Bloco 4 — integração clínica e Dashboard
 
 Data: 26/10/2026. **BLOCO 4 INTEGRADO E PRONTO PARA REVISÃO**.
-Entrega exclusivamente local: sem push, PR, merge, deploy ou alteração de main.
-Não foi iniciado o Bloco 5.
+A entrega inicial foi exclusivamente local. Na rodada seguinte, foi autorizada
+a publicação/PR/merge em develop após revisão e repetição dos gates críticos.
+Não foi iniciado o Bloco 5, deploy ou alteração de main.
+
+## Revisão para publicação
+
+Histórico local confirmado: 9498070, fdea8a3, 5093a3a, 0f0b8cb e 4962187 sobre
+develop c24c557. Backend permaneceu limpo em e183b6b. Diff revisado quanto a
+escopo, contratos, segurança e ausência de arquivos locais/secrets/dependências.
+Somente README/relatório foram atualizados nesta revisão, sem mudança funcional.
+
+Repetidos e aprovados: lint, build, npm run smoke,
+node scripts/smoke-agendamentos.mjs e node scripts/smoke-clinica-dashboard.mjs.
+Regressão mínima em Chrome 156/PostgreSQL 18 reais: PROFESSIONAL cria/edita
+prontuário próprio, F5 preserva notes e GET/PUT alheios retornam 403; duplicidade
+409 mantém modal/notes, refaz a leitura e remove a opção ocupada sem falso
+sucesso. ADMIN tem leitura global e abas reais do PatientDetails; RECEPTIONIST
+tem Dashboard/Consultas do paciente sem aba ou requests clínicos. Dashboard
+PROFESSIONAL não consulta Patients e não mostra o total global. Console e Bearer
+conferidos, sem APIs inventadas ou DELETE MedicalRecord.
+
+O workflow existente responde somente a main/manual, sem CI de PR/develop.
+Checks disponíveis serão novamente conferidos na PR; não se presume CI verde.
+Após merge, repetir os cinco gates locais e smoke mínimo dos três perfis na
+develop consolidada. Itens do Bloco 5 permanecem deliberadamente fora do escopo.
 
 ## Estado inicial e baselines
 
@@ -286,5 +309,5 @@ Itens para revisão/estabilização posterior: decidir destino da rota técnica
 opcional. Não foram iniciados otimização geral, refactor estético, CI frontend,
 deploy, novas funcionalidades ou merge em main.
 
-Revisar o Bloco 4 local antes de autorizar publicação. Sem push/PR/merge nesta
-execução; não avançar para acabamento/deploy sem nova instrução.
+A publicação/PR/merge em develop foi autorizada somente após os gates da revisão
+acima. Parar após a validação pós-merge; não iniciar Bloco 5, acabamento ou deploy.
