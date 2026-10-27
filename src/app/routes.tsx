@@ -1,26 +1,22 @@
+import { lazy, Suspense } from 'react';
+import { Spinner } from '../components/ui/Spinner/Spinner';
 import { createBrowserRouter, Link } from "react-router-dom";
 import { AppShell } from "../layouts/AppShell/AppShell";
 import { RouteGuard, SessionGuard } from './RouteGuard';
-import { DashboardPage } from "../pages/Dashboard/DashboardPage";
-import { PatientsPage } from "../pages/Patients/PatientsPage";
-import { PatientDetailsPage } from "../pages/Patients/PatientDetailsPage";
-import { MedicalRecordsPage } from "../pages/MedicalRecords/MedicalRecordsPage";
-import { ProfessionalsPage } from "../pages/Professionals/ProfessionalsPage";
-import { SpecialtiesPage } from "../pages/Specialties/SpecialtiesPage";
-import { UsersPage } from "../pages/Users/UsersPage";
-import { LoginPage } from "../pages/Login/LoginPage";
-import { AppointmentsPage } from "../pages/Appointments/AppointmentsPage";
-import { ConsultationsPage } from "../pages/Consultations/ConsultationsPage";
+const DashboardPage = lazy(() => import('../pages/Dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const PatientsPage = lazy(() => import('../pages/Patients/PatientsPage').then((module) => ({ default: module.PatientsPage })));
+const PatientDetailsPage = lazy(() => import('../pages/Patients/PatientDetailsPage').then((module) => ({ default: module.PatientDetailsPage })));
+const MedicalRecordsPage = lazy(() => import('../pages/MedicalRecords/MedicalRecordsPage').then((module) => ({ default: module.MedicalRecordsPage })));
+const ProfessionalsPage = lazy(() => import('../pages/Professionals/ProfessionalsPage').then((module) => ({ default: module.ProfessionalsPage })));
+const SpecialtiesPage = lazy(() => import('../pages/Specialties/SpecialtiesPage').then((module) => ({ default: module.SpecialtiesPage })));
+const UsersPage = lazy(() => import('../pages/Users/UsersPage').then((module) => ({ default: module.UsersPage })));
+const LoginPage = lazy(() => import('../pages/Login/LoginPage').then((module) => ({ default: module.LoginPage })));
+const AppointmentsPage = lazy(() => import('../pages/Appointments/AppointmentsPage').then((module) => ({ default: module.AppointmentsPage })));
+const ConsultationsPage = lazy(() => import('../pages/Consultations/ConsultationsPage').then((module) => ({ default: module.ConsultationsPage })));
 
-// Placeholder pages to allow navigation without errors while modules are not ready
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="flex items-center justify-center h-full text-text-muted">
-    <div className="text-center">
-      <h2 className="text-2xl font-semibold mb-2">{title}</h2>
-      <p>Módulo em desenvolvimento - Integração com API pendente.</p>
-    </div>
-  </div>
-);
+function RouteLoading({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<div role="status" className="flex items-center justify-center gap-3 p-10"><Spinner />Carregando página...</div>}>{children}</Suspense>;
+}
 
 export const router = createBrowserRouter([
   {
@@ -29,43 +25,39 @@ export const router = createBrowserRouter([
     children: [{ element: <AppShell />, children: [
       {
         index: true,
-        element: <DashboardPage />,
+        element: <RouteLoading><DashboardPage /></RouteLoading>,
       },
       {
         path: "appointments",
-        element: <RouteGuard path="/appointments"><AppointmentsPage /></RouteGuard>,
+        element: <RouteGuard path="/appointments"><RouteLoading><AppointmentsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "consultations",
-        element: <RouteGuard path="/consultations"><ConsultationsPage /></RouteGuard>,
+        element: <RouteGuard path="/consultations"><RouteLoading><ConsultationsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "patients",
-        element: <RouteGuard path="/patients"><PatientsPage /></RouteGuard>,
+        element: <RouteGuard path="/patients"><RouteLoading><PatientsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "patients/:id",
-        element: <RouteGuard path="/patients"><PatientDetailsPage /></RouteGuard>,
+        element: <RouteGuard path="/patients"><RouteLoading><PatientDetailsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "professionals",
-        element: <RouteGuard path="/professionals"><ProfessionalsPage /></RouteGuard>,
+        element: <RouteGuard path="/professionals"><RouteLoading><ProfessionalsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "specialties",
-        element: <RouteGuard path="/specialties"><SpecialtiesPage /></RouteGuard>,
-      },
-      {
-        path: "schedules",
-        element: <RouteGuard path="/schedules"><PlaceholderPage title="Grade de Horários (Disponibilidade)" /></RouteGuard>,
+        element: <RouteGuard path="/specialties"><RouteLoading><SpecialtiesPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "medical-records",
-        element: <RouteGuard path="/medical-records"><MedicalRecordsPage /></RouteGuard>,
+        element: <RouteGuard path="/medical-records"><RouteLoading><MedicalRecordsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "users",
-        element: <RouteGuard path="/users"><UsersPage /></RouteGuard>,
+        element: <RouteGuard path="/users"><RouteLoading><UsersPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "*",
@@ -75,7 +67,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/login",
-    element: <LoginPage />,
+    element: <RouteLoading><LoginPage /></RouteLoading>,
   }
 ], {
   basename: import.meta.env.BASE_URL,
