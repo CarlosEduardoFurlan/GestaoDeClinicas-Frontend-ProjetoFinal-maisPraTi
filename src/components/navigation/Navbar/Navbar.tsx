@@ -1,0 +1,65 @@
+import { useState, useRef, useEffect } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
+import { useToast } from "../../../contexts/ToastContext";
+import { useNavigate } from "react-router-dom";
+import { LogOut, Menu } from "lucide-react";
+
+export function Navbar({ menuOpen, onMenuToggle }: { menuOpen: boolean; onMenuToggle: () => void }) {
+  const { user, logout } = useAuth();
+  const { info } = useToast();
+  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    info("Sessão encerrada", "Você saiu da sua conta com segurança.");
+    navigate("/login");
+  };
+  
+  return (
+    <header className="h-[var(--navbar-height)] bg-background flex items-center justify-between lg:justify-end px-4 sm:px-6 sticky top-0 z-10">
+      <button type="button" aria-label="Abrir menu de navegação" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={onMenuToggle} className="lg:hidden p-2 rounded-lg hover:bg-slate-100"><Menu aria-hidden="true" className="w-6 h-6" /></button>
+      <div className="relative" ref={dropdownRef}>
+        <button 
+          aria-label={`Menu da conta de ${user?.name ?? 'usuário'}`}
+          aria-expanded={dropdownOpen}
+          aria-controls="account-menu"
+          onKeyDown={(event) => { if (event.key === 'Escape') setDropdownOpen(false); }}
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity p-1.5 rounded-xl cursor-pointer"
+        >
+          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
+            {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : ''}
+          </div>
+          <div className="flex flex-col text-left hidden sm:flex">
+            <span className="text-sm font-semibold text-text">{user?.name}</span>
+            <span className="text-xs text-text-secondary">{user && ({ ADMIN: 'Administrador', RECEPTIONIST: 'Recepção', PROFESSIONAL: 'Profissional' })[user.profile]}</span>
+          </div>
+        </button>
+
+        {dropdownOpen && (
+          <div id="account-menu" onKeyDown={(event) => { if (event.key === 'Escape') { setDropdownOpen(false); dropdownRef.current?.querySelector('button')?.focus(); } }} className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left"
+            >
+              <LogOut className="w-4 h-4" />
+              Sair do Sistema
+            </button>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
