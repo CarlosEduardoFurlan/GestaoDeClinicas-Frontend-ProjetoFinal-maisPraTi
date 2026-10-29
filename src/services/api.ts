@@ -6,7 +6,8 @@ const baseURL = import.meta.env.VITE_API_URL?.trim().replace(/\/$/, '');
 
 export const api = axios.create({
   baseURL,
-  timeout: 15000,
+  // Permite cold starts de ambientes hospedados sem adicionar retries automáticos.
+  timeout: 120000,
   headers: { 'Content-Type': 'application/json' },
 });
 
