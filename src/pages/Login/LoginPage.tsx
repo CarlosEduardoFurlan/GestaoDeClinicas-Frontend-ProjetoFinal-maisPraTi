@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { errorDescription } from '../../lib/api-error';
 import { Button } from '../../components/ui/Button/Button';
-import { Spinner } from '../../components/ui/Spinner/Spinner';
+import { DelayedLoading } from '../../components/ui/Loading/DelayedLoading';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,7 +15,7 @@ export function LoginPage() {
   const { login, isAuthenticated, isRestoring } = useAuth();
   const { error } = useToast();
 
-  if (isRestoring) return <div className="min-h-screen flex items-center justify-center" role="status"><Spinner /><span className="sr-only">Validando sessão</span></div>;
+  if (isRestoring) return <DelayedLoading className="min-h-screen justify-center">Validando sessão...</DelayedLoading>;
   if (isAuthenticated) return <Navigate to="/" replace />;
 
   const handleSubmit = async (event: React.FormEvent) => {

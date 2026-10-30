@@ -1,7 +1,7 @@
 ﻿import { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
-import { Spinner } from '../../components/ui/Spinner/Spinner';
+import { LoadingContent } from '../../components/ui/Loading/LoadingContent';
 import { ScheduleFormModal } from '../../components/appointments/ScheduleFormModal';
 import { AppointmentFormModal } from '../../components/appointments/AppointmentFormModal';
 import { AppointmentDetailsModal } from '../../components/appointments/AppointmentDetailsModal';
@@ -59,7 +59,7 @@ export function AppointmentsPage() {
       </div>
     </div>
     <div className="bg-white rounded-[1.25rem] shadow-sm border border-slate-100 overflow-hidden">
-      {data.loading ? <div role="status" className="p-10 flex justify-center gap-3"><Spinner />Carregando agenda...</div> : data.loadError ? <div className="p-6 space-y-3"><p role="alert" className="text-red-700">{data.loadError}</p><Button variant="outline" onClick={() => void data.refresh()}>Tentar novamente</Button></div> : <>
+      <LoadingContent loading={data.loading} error={data.loadError} label="Carregando agenda..." errorFallback={<div className="p-6 space-y-3"><p role="alert" className="text-red-700">{data.loadError}</p><Button variant="outline" onClick={() => void data.refresh()}>Tentar novamente</Button></div>}><>
         <div className="overflow-x-auto"><div className="grid border-b border-slate-100" style={gridStyle}>
           <div className="p-4 text-xs font-bold text-slate-400">Horário</div>
           {dates.map((day, index) => <div key={day} className={`p-4 text-center ${day === localDate() ? 'bg-blue-50 text-primary' : 'text-slate-600'}`}><span className="text-xs font-bold">{view === 'Semana' ? ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'][index] : 'DIA'}</span><div className="text-sm font-extrabold mt-1">{displayDate(day)}</div></div>)}
@@ -67,7 +67,7 @@ export function AppointmentsPage() {
         {!times.length ? <p className="p-10 text-center text-slate-500">Nenhum horário ou consulta no período selecionado.</p> : times.map((time) => <div key={time} className="grid border-b border-slate-100 last:border-0 min-h-[110px]" style={gridStyle}>
           <div className="p-3 text-sm font-semibold text-slate-500 border-r">{displayTime(time)}</div>
           {dates.map((day) => <div key={day} className="border-r last:border-0 border-slate-100 p-2 space-y-2">
-            {visibleSchedules.filter((item) => item.date === day && timeKey(item.time) === time && free.has(slotKey(item))).map((slot) => <button key={slot.id} data-schedule-id={slot.id} aria-label={`Agendar ${slot.professionalName} ${slot.date} ${displayTime(slot.time)}`} disabled={!canCreate} onClick={() => setNewAppointment({ slot })} className="block w-full text-left rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3 disabled:cursor-default hover:bg-blue-50">
+            {visibleSchedules.filter((item) => item.date === day && timeKey(item.time) === time && free.has(slotKey(item))).map((slot) => <button key={slot.id} data-schedule-id={slot.id} aria-label={`Agendar ${slot.professionalName} ${slot.date} ${displayTime(slot.time)}`} disabled={!canCreate || unavailable} onClick={() => setNewAppointment({ slot })} className="block w-full text-left rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3 disabled:cursor-default hover:bg-blue-50">
               <div className="text-xs font-bold text-emerald-700">Disponível · {displayTime(slot.time)}</div><div className="text-xs text-slate-500 mt-1">{slot.professionalName}</div>
             </button>)}
             {visibleAppointments.filter((item) => item.date === day && timeKey(item.time) === time).map((appointment) => <button key={appointment.id} data-appointment-id={appointment.id} aria-label={`Visualizar consulta de ${appointment.patientName} ${appointment.date} ${displayTime(appointment.time)}`} onClick={() => setViewingId(appointment.id)} className={`block w-full text-left rounded-xl border bg-white p-3 shadow-sm ${appointment.statusName === 'Cancelada' ? 'border-red-200' : 'border-blue-200'}`}>
@@ -76,7 +76,7 @@ export function AppointmentsPage() {
           </div>)}
         </div>)}</div>
         <div className="px-5 py-4 border-t text-sm text-slate-500">{visibleSchedules.length} horários · {visibleAppointments.length} consultas no período</div>
-      </>}
+      </></LoadingContent>
     </div>
     <p className="text-xs text-slate-500 px-4">Disponível: horário aberto sem consulta ativa. Consultas canceladas permanecem no histórico.</p>
     {slotModal && canOpenSlot && <ScheduleFormModal initialDate={date} refresh={data.refresh} onClose={() => setSlotModal(false)} onSaved={(saved) => { setDate(saved.date); setSlotModal(false); void data.refresh(); }} />}

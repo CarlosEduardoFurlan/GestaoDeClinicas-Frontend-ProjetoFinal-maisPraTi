@@ -1,3 +1,4 @@
+import { DelayedLoading } from '../ui/Loading/DelayedLoading';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Modal } from '../overlay/Modal/Modal';
 import { Button } from '../ui/Button/Button';
@@ -57,7 +58,7 @@ export function ScheduleFormModal({ initialDate, onClose, onSaved, refresh }: {
         <FormField id="schedule-date" label="Data" type="date" required value={date} onChange={(event) => setDate(event.target.value)} />
         <FormField id="schedule-time" label="Horário" type="time" step="any" required value={time} onChange={(event) => setTime(event.target.value)} />
       </fieldset>
-      {admin && professionals.loading && <p role="status">Carregando profissionais...</p>}
+      <DelayedLoading active={admin && professionals.loading} size="sm" className="text-sm text-slate-500">Carregando profissionais...</DelayedLoading>
       {admin && professionals.loadError && <div><p role="alert" className="text-red-700">{professionals.loadError}</p><Button type="button" variant="outline" onClick={professionals.retry}>Recarregar profissionais</Button></div>}
       {admin && !professionals.loading && !professionals.loadError && !professionals.items.length && <p>Cadastre um profissional para abrir horários.</p>}
       {formError && <p role="alert" className="text-sm text-red-700">{formError}</p>}

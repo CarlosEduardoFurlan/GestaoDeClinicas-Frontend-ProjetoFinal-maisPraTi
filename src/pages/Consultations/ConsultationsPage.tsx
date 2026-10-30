@@ -1,7 +1,8 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { DelayedLoading } from '../../components/ui/Loading/DelayedLoading';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Eye, Plus, Search } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
-import { Spinner } from '../../components/ui/Spinner/Spinner';
+import { LoadingContent } from '../../components/ui/Loading/LoadingContent';
 import { Modal } from '../../components/overlay/Modal/Modal';
 import { AppointmentFormModal } from '../../components/appointments/AppointmentFormModal';
 import { AppointmentDetailsModal } from '../../components/appointments/AppointmentDetailsModal';
@@ -93,19 +94,19 @@ export function ConsultationsPage() {
         <Button variant="outline" onClick={() => { setSearch(''); setStatusFilter(''); setProfessionalFilter(''); setDateFilter(''); }}>Limpar filtros</Button>
         <Button variant="outline" disabled={data.loading || !!pendingId} onClick={() => void data.refresh()}>Atualizar consultas</Button>
       </div>
-      {data.loading ? <div role="status" className="p-10 flex justify-center gap-3"><Spinner />Carregando consultas...</div> : data.loadError ? <div className="p-6 space-y-3"><p role="alert" className="text-red-700">{data.loadError}</p><Button variant="outline" onClick={() => void data.refresh()}>Tentar novamente</Button></div> : <>
+      <LoadingContent loading={data.loading} error={data.loadError} label="Carregando consultas..." errorFallback={<div className="p-6 space-y-3"><p role="alert" className="text-red-700">{data.loadError}</p><Button variant="outline" onClick={() => void data.refresh()}>Tentar novamente</Button></div>}><>
         <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="p-5">Data / Horário</th><th className="p-5">Paciente</th><th className="p-5">Profissional</th><th className="p-5">Status</th><th className="p-5 text-right">Ações</th></tr></thead><tbody className="divide-y divide-slate-50">
           {!filtered.length ? <tr><td colSpan={5} className="p-10 text-center text-slate-500">{data.appointments.length ? 'Nenhuma consulta encontrada com os filtros aplicados.' : 'Nenhuma consulta cadastrada.'}</td></tr> : filtered.map((item) => <tr key={item.id} data-appointment-id={item.id} className="hover:bg-slate-50/50">
             <td className="p-5 text-sm"><div className="font-bold text-slate-900">{displayTime(item.time)}</div><div className="text-slate-500">{displayDate(item.date)}</div></td>
             <td className="p-5 text-sm font-bold text-slate-900">{item.patientName}</td><td className="p-5 text-sm text-slate-600">{item.professionalName}</td><td className="p-5"><StatusBadge status={item.statusName} /></td>
             <td className="p-5"><div className="flex flex-wrap justify-end gap-2"><button aria-label={`Visualizar consulta de ${item.patientName}`} onClick={() => setViewingId(item.id)} className="p-2 text-slate-500 rounded-lg hover:bg-slate-100"><Eye className="w-4 h-4" /></button>
-              {user && <AppointmentActions appointment={item} user={user} statuses={catalog.items} disabled={!!pendingId || catalog.loading || !!catalog.loadError} pending={pendingId === item.id} onTransition={(appointment, target) => void transition(appointment, target)} onCancel={(appointment) => { setActionError(null); setCanceling(appointment); }} />}
+              {user && <AppointmentActions appointment={item} user={user} statuses={catalog.items} disabled={data.loading || !!pendingId || catalog.loading || !!catalog.loadError} pending={pendingId === item.id} onTransition={(appointment, target) => void transition(appointment, target)} onCancel={(appointment) => { setActionError(null); setCanceling(appointment); }} />}
             </div></td>
           </tr>)}
         </tbody></table></div><div className="px-5 py-4 border-t text-sm text-slate-500">Exibindo {filtered.length} de {data.appointments.length} consultas</div>
-      </>}
+      </></LoadingContent>
     </div>
-    {catalog.loading && <p role="status" className="text-sm text-slate-500">Carregando status...</p>}
+    <DelayedLoading active={catalog.loading} size="sm" className="text-sm text-slate-500">Carregando status...</DelayedLoading>
     {catalogError && <div className="space-y-3"><p role="alert" className="text-red-700">{catalogError}</p><Button variant="outline" onClick={catalog.retry}>Recarregar status</Button></div>}
     {actionError && !canceling && <p role="alert" className="text-sm text-red-700">{actionError}</p>}
     {creating && canCreate && <AppointmentFormModal {...data} onClose={() => setCreating(false)} onSaved={() => { setCreating(false); void data.refresh(); }} />}
