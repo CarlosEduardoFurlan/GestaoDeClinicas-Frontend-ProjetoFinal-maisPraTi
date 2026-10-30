@@ -1,14 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { layoutConfig } from "../../config/layout";
 import { Sidebar } from "../../components/navigation/Sidebar/Sidebar";
 import { Navbar } from "../../components/navigation/Navbar/Navbar";
 import { Footer } from "../../components/navigation/Footer/Footer";
 import { useAuth } from "../../contexts/AuthContext";
+import { schedulePagePrefetch } from '../../app/pageLoaders';
 
 export function AppShell() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    if (isAuthenticated && user) return schedulePagePrefetch(user.profile);
+  }, [isAuthenticated, user?.profile]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

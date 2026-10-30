@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Spinner } from '../components/ui/Spinner/Spinner';
+import { DelayedLoading } from '../components/ui/Loading/DelayedLoading';
 import { Button } from '../components/ui/Button/Button';
 import { routeProfiles } from '../config/permissions';
 
 export function SessionGuard() {
   const { isRestoring, isAuthenticated, sessionError, restoreSession, logout } = useAuth();
-  if (isRestoring) return <div className="min-h-screen flex items-center justify-center gap-3" role="status"><Spinner />Validando sessão...</div>;
+  if (isRestoring) return <DelayedLoading className="min-h-screen justify-center">Validando sessão...</DelayedLoading>;
   if (sessionError && !isAuthenticated) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6">
       <p role="alert" className="text-red-700">{sessionError}</p>

@@ -1,21 +1,38 @@
-import { lazy, Suspense } from 'react';
-import { Spinner } from '../components/ui/Spinner/Spinner';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { DelayedLoading } from '../components/ui/Loading/DelayedLoading';
 import { createBrowserRouter, Link } from "react-router-dom";
 import { AppShell } from "../layouts/AppShell/AppShell";
 import { RouteGuard, SessionGuard } from './RouteGuard';
-const DashboardPage = lazy(() => import('../pages/Dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })));
-const PatientsPage = lazy(() => import('../pages/Patients/PatientsPage').then((module) => ({ default: module.PatientsPage })));
-const PatientDetailsPage = lazy(() => import('../pages/Patients/PatientDetailsPage').then((module) => ({ default: module.PatientDetailsPage })));
-const MedicalRecordsPage = lazy(() => import('../pages/MedicalRecords/MedicalRecordsPage').then((module) => ({ default: module.MedicalRecordsPage })));
-const ProfessionalsPage = lazy(() => import('../pages/Professionals/ProfessionalsPage').then((module) => ({ default: module.ProfessionalsPage })));
-const SpecialtiesPage = lazy(() => import('../pages/Specialties/SpecialtiesPage').then((module) => ({ default: module.SpecialtiesPage })));
-const UsersPage = lazy(() => import('../pages/Users/UsersPage').then((module) => ({ default: module.UsersPage })));
-const LoginPage = lazy(() => import('../pages/Login/LoginPage').then((module) => ({ default: module.LoginPage })));
-const AppointmentsPage = lazy(() => import('../pages/Appointments/AppointmentsPage').then((module) => ({ default: module.AppointmentsPage })));
-const ConsultationsPage = lazy(() => import('../pages/Consultations/ConsultationsPage').then((module) => ({ default: module.ConsultationsPage })));
+import { pageLoaders } from './pageLoaders';
+const DashboardPage = lazy(pageLoaders.dashboard);
+const PatientsPage = lazy(pageLoaders.patients);
+const PatientDetailsPage = lazy(pageLoaders.patientDetails);
+const MedicalRecordsPage = lazy(pageLoaders.medicalRecords);
+const ProfessionalsPage = lazy(pageLoaders.professionals);
+const SpecialtiesPage = lazy(pageLoaders.specialties);
+const UsersPage = lazy(pageLoaders.users);
+const LoginPage = lazy(pageLoaders.login);
+const AppointmentsPage = lazy(pageLoaders.appointments);
+const ConsultationsPage = lazy(pageLoaders.consultations);
 
-function RouteLoading({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<div role="status" className="flex items-center justify-center gap-3 p-10"><Spinner />Carregando página...</div>}>{children}</Suspense>;
+type PageLoader = () => Promise<unknown>;
+
+function RouteFallback({ load }: { load: PageLoader }) {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let mounted = true;
+    // Suspense pode reter seu fallback depois de o chunk chegar.
+    // A importação nativa compartilha o módulo com lazy, sem outra request.
+    void load().then(() => { if (mounted) setLoading(false); }, () => {
+      if (mounted) setLoading(false);
+    });
+    return () => { mounted = false; };
+  }, [load]);
+  return <DelayedLoading active={loading} className="p-10 justify-center">Carregando página...</DelayedLoading>;
+}
+
+function RouteLoading({ children, load }: { children: React.ReactNode; load: PageLoader }) {
+  return <Suspense fallback={<RouteFallback load={load} />}>{children}</Suspense>;
 }
 
 export const router = createBrowserRouter([
@@ -25,39 +42,39 @@ export const router = createBrowserRouter([
     children: [{ element: <AppShell />, children: [
       {
         index: true,
-        element: <RouteLoading><DashboardPage /></RouteLoading>,
+        element: <RouteLoading load={pageLoaders.dashboard}><DashboardPage /></RouteLoading>,
       },
       {
         path: "appointments",
-        element: <RouteGuard path="/appointments"><RouteLoading><AppointmentsPage /></RouteLoading></RouteGuard>,
+        element: <RouteGuard path="/appointments"><RouteLoading load={pageLoaders.appointments}><AppointmentsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "consultations",
-        element: <RouteGuard path="/consultations"><RouteLoading><ConsultationsPage /></RouteLoading></RouteGuard>,
+        element: <RouteGuard path="/consultations"><RouteLoading load={pageLoaders.consultations}><ConsultationsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "patients",
-        element: <RouteGuard path="/patients"><RouteLoading><PatientsPage /></RouteLoading></RouteGuard>,
+        element: <RouteGuard path="/patients"><RouteLoading load={pageLoaders.patients}><PatientsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "patients/:id",
-        element: <RouteGuard path="/patients"><RouteLoading><PatientDetailsPage /></RouteLoading></RouteGuard>,
+        element: <RouteGuard path="/patients"><RouteLoading load={pageLoaders.patientDetails}><PatientDetailsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "professionals",
-        element: <RouteGuard path="/professionals"><RouteLoading><ProfessionalsPage /></RouteLoading></RouteGuard>,
+        element: <RouteGuard path="/professionals"><RouteLoading load={pageLoaders.professionals}><ProfessionalsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "specialties",
-        element: <RouteGuard path="/specialties"><RouteLoading><SpecialtiesPage /></RouteLoading></RouteGuard>,
+        element: <RouteGuard path="/specialties"><RouteLoading load={pageLoaders.specialties}><SpecialtiesPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "medical-records",
-        element: <RouteGuard path="/medical-records"><RouteLoading><MedicalRecordsPage /></RouteLoading></RouteGuard>,
+        element: <RouteGuard path="/medical-records"><RouteLoading load={pageLoaders.medicalRecords}><MedicalRecordsPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "users",
-        element: <RouteGuard path="/users"><RouteLoading><UsersPage /></RouteLoading></RouteGuard>,
+        element: <RouteGuard path="/users"><RouteLoading load={pageLoaders.users}><UsersPage /></RouteLoading></RouteGuard>,
       },
       {
         path: "*",
@@ -67,7 +84,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/login",
-    element: <RouteLoading><LoginPage /></RouteLoading>,
+    element: <RouteLoading load={pageLoaders.login}><LoginPage /></RouteLoading>,
   }
 ], {
   basename: import.meta.env.BASE_URL,

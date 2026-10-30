@@ -1,8 +1,9 @@
+import { DelayedLoading } from '../../components/ui/Loading/DelayedLoading';
 import React, { useEffect, useRef, useState } from 'react';
 import { Search, UserPlus, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
 import { Modal } from '../../components/overlay/Modal/Modal';
-import { Spinner } from '../../components/ui/Spinner/Spinner';
+import { LoadingContent } from '../../components/ui/Loading/LoadingContent';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { UserService } from '../../services/user.service';
@@ -89,12 +90,12 @@ export function UsersPage() {
         <div className="relative flex-1"><Search className="absolute left-4 top-3.5 w-4 h-4 text-slate-400" /><input aria-label="Buscar usuário" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Filtrar por nome ou e-mail..." className={fieldClass + ' pl-11'} /></div>
         <select aria-label="Filtrar perfil" value={profileFilter} onChange={(event) => setProfileFilter(event.target.value)} className="bg-slate-50 rounded-xl px-4 py-2 text-sm"><option value="">Todos os perfis</option>{Object.entries(profiles).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
       </div>
-      {loading ? <div role="status" className="p-10 flex justify-center gap-3"><Spinner />Carregando usuários...</div> : loadError ? <div className="p-6 space-y-3"><p role="alert" className="text-red-700">{loadError}</p><Button variant="outline" onClick={retry}>Tentar novamente</Button></div> : <>
+      <LoadingContent loading={loading} error={loadError} label="Carregando usuários..." errorFallback={<div className="p-6 space-y-3"><p role="alert" className="text-red-700">{loadError}</p><Button variant="outline" onClick={retry}>Tentar novamente</Button></div>}><>
         <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="p-5">Usuário & E-mail</th><th className="p-5">Perfil de acesso</th><th className="p-5 text-right">Ações</th></tr></thead><tbody className="divide-y divide-slate-50">
-          {!filtered.length ? <tr><td colSpan={3} className="p-10 text-center text-slate-500">{items.length ? 'Nenhum usuário encontrado com os filtros aplicados.' : 'Nenhum usuário cadastrado.'}</td></tr> : filtered.map((item) => <tr key={item.id} className="hover:bg-slate-50/50"><td className="p-5"><div className="font-bold text-slate-900">{item.name}</div><div className="text-sm text-slate-500">{item.email}</div></td><td className="p-5 text-sm">{profiles[item.profile]}</td><td className="p-5"><div className="flex justify-end gap-2">{canWrite && <><button disabled={pending} aria-label={`Editar ${item.name}`} onClick={() => void openEdit(item)} className="p-2 text-slate-500 rounded-lg hover:bg-slate-100"><Edit2 className="w-4 h-4" /></button><button disabled={pending} aria-label={`Excluir ${item.name}`} onClick={() => { setFormError(null); setDeleting(item); }} className="p-2 text-slate-500 rounded-lg hover:bg-red-50"><Trash2 className="w-4 h-4" /></button></>}</div></td></tr>)}
+          {!filtered.length ? <tr><td colSpan={3} className="p-10 text-center text-slate-500">{items.length ? 'Nenhum usuário encontrado com os filtros aplicados.' : 'Nenhum usuário cadastrado.'}</td></tr> : filtered.map((item) => <tr key={item.id} className="hover:bg-slate-50/50"><td className="p-5"><div className="font-bold text-slate-900">{item.name}</div><div className="text-sm text-slate-500">{item.email}</div></td><td className="p-5 text-sm">{profiles[item.profile]}</td><td className="p-5"><div className="flex justify-end gap-2">{canWrite && <><button disabled={loading || pending} aria-label={`Editar ${item.name}`} onClick={() => void openEdit(item)} className="p-2 text-slate-500 rounded-lg hover:bg-slate-100"><Edit2 className="w-4 h-4" /></button><button disabled={loading || pending} aria-label={`Excluir ${item.name}`} onClick={() => { setFormError(null); setDeleting(item); }} className="p-2 text-slate-500 rounded-lg hover:bg-red-50"><Trash2 className="w-4 h-4" /></button></>}</div></td></tr>)}
         </tbody></table></div><div className="p-4 border-t text-sm text-slate-500">Exibindo {filtered.length} de {items.length} usuários</div>
-      </>}
-      {pending && !isOpen && !deleting && <p role="status" className="p-4 text-slate-500">Carregando usuário...</p>}
+      </></LoadingContent>
+      <DelayedLoading active={pending && !isOpen && !deleting} size="sm" className="p-4 text-slate-500">Carregando usuário...</DelayedLoading>
     </div>
     {canWrite && <Modal isOpen={isOpen} onClose={() => { if (!pending) { setIsOpen(false); setForm({ ...emptyForm }); } }} title={editing ? 'Editar Usuário' : 'Novo Usuário'}>
       <form onSubmit={save} className="space-y-4" aria-busy={pending}>
