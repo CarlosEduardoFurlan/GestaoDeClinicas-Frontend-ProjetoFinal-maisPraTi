@@ -2,15 +2,17 @@
 
 ## 1. Visão geral
 
-SPA de gestão clínica publicada no GitHub Pages. Todas as telas funcionais consomem a API REST do backend no Render; o servidor é a autoridade de autenticação, autorização, ownership e persistência.
+SPA de gestão clínica publicada principalmente na Vercel. GitHub Pages permanece como publicação secundária/compatibilidade. Todas as telas funcionais consomem a API REST do backend no Render; o servidor é a autoridade de autenticação, autorização, ownership e persistência.
 
 ```mermaid
 flowchart LR
-    Browser[Browser: React SPA no GitHub Pages] -->|HTTPS e JWT Bearer| API[API REST no Render]
-    API --> DB[(PostgreSQL)]
+    Browser[Usuário no navegador: SPA servida pela Vercel] -->|HTTPS e JWT Bearer| API[API REST no Render]
+    API --> DB[(PostgreSQL no Render)]
 ```
 
-Produção: https://carloseduardofurlan.github.io/GestaoDeClinicas-Frontend-ProjetoFinal-maisPraTi/
+Produção principal: https://praclinic.vercel.app
+
+Publicação secundária: https://carloseduardofurlan.github.io/GestaoDeClinicas-Frontend-ProjetoFinal-maisPraTi/
 
 API: https://praclinic-api.onrender.com/api
 
@@ -141,7 +143,11 @@ Erros de gravação preservam o formulário e os dados digitados. Em conflitos d
 
 ## 12. Performance
 
-As páginas usam React.lazy e Suspense com Spinner/role=status. Guards de perfil ficam antes do carregamento restrito. Vite separa páginas e dependências comuns em chunks; o carregamento ocorre conforme a navegação. O favicon é um SVG local referenciado com a base do build.
+As páginas usam React.lazy e Suspense; Vite preserva chunks de páginas e dependências comuns. Após a autenticação e montagem do shell, `requestIdleCallback` antecipa somente chunks permitidos ao perfil, sem chamadas à API; dois frames de `requestAnimationFrame` são o fallback cancelável. Guards e matriz de permissões permanecem os mesmos. O favicon é um SVG local referenciado com a base do build.
+
+`useDelayedLoading` e `DelayedLoading` exibem indicadores de sessão, rota e dados somente após **250 ms**. O threshold elimina flashes de respostas rápidas e mantém feedback em operações lentas, sem atrasar requests, navegação ou impor tempo mínimo. O fallback acompanha a resolução do chunk, evitando que a retenção do Suspense produza um flash após a importação já ter terminado.
+
+`LoadingContent` distingue primeira carga de refresh na montagem atual: não mostra empty state antes da resposta e mantém conteúdo já carregado durante atualização, com feedback discreto após o mesmo threshold. Os GETs continuam em cada montagem/refetch, erros aparecem normalmente e escritas mantêm pending/disabled imediato. Não foi necessário cache global de dados; o backend continua a fonte de verdade.
 
 ## 13. Responsividade e acessibilidade
 
@@ -149,11 +155,13 @@ Menu lateral desktop e menu mobile em dialog nativo; navegação filtrada por pe
 
 Modais usam showModal, conteúdo externo inerte, foco inicial em campo habilitado, retorno ao acionador, Escape e navegação de teclado. Títulos/descrições usam aria-labelledby/describedby; labels, nomes acessíveis, estados aria, foco visível, skip link e reduced-motion apoiam a navegação. PatientDetails usa tabs com setas/Home/End. Essas escolhas não equivalem a certificação WCAG.
 
+O Spinner funcional usa `1s linear infinite` no modo normal e `1.5s linear infinite` com movimento reduzido. A exceção é localizada em `.app-spinner`; a regra global de reduced-motion continua aplicada ao restante da UI.
+
 ## 14. Configuração
 
 `VITE_API_URL` é pública e definida no build; produção usa `https://praclinic-api.onrender.com/api`. Nunca colocar credenciais em variáveis VITE_*.
 
-Localmente, `.env.local` ignorado pode definir a API local. Vite deve ser reiniciado após alterações. O script dev usa `http://localhost:3000` com strictPort. Configure CORS apenas no backend local correspondente; o CORS de produção permanece restrito à origem GitHub Pages.
+Localmente, `.env.local` ignorado pode definir a API local. Vite deve ser reiniciado após alterações. O script dev usa `http://localhost:3000` com strictPort. Configure a origem local somente no backend local correspondente. Em produção, CORS permite exatamente `https://praclinic.vercel.app` (principal) e `https://carloseduardofurlan.github.io` (secundária), sem wildcard, caminho do repositório ou barra final.
 
 ## 15. Build, testes e CI
 
@@ -170,7 +178,15 @@ node scripts/smoke-clinica-dashboard.mjs
 
 **Frontend validation** executa instalação congelada e esses gates em PRs para develop/main, pushes em develop e execução manual. O lockfile oficial é bun.lock.
 
-## 16. Deploy GitHub Pages
+## 16. Deploy do frontend
+
+### Vercel — produção principal
+
+O projeto `praclinic` publica automaticamente a **main** (Production Branch), com preset **Vite**, Root Directory `./`, Install Command `bun install --frozen-lockfile`, Build Command `bun run build` e Output Directory `dist`. `VITE_API_URL=https://praclinic-api.onrender.com/api` é configurada somente no ambiente **Production** da Vercel; não contém credenciais.
+
+A base do build é `/`. `vercel.json` fornece o fallback SPA para `/index.html`, preservando assets e permitindo acesso direto/F5 em rotas como `/appointments` e `/patients`. A API continua acessada diretamente no Render pelo navegador.
+
+### GitHub Pages — publicação secundária
 
 O workflow **Deploy to GitHub Pages** responde a push em main ou disparo manual. Pages usa Source = GitHub Actions. O environment `github-pages` fornece `VITE_API_URL` como variável normal.
 
@@ -180,6 +196,6 @@ Em rota profunda, GitHub Pages responde o documento 404.html com HTTP 404, mas e
 
 ## 17. Integração e operação
 
-Assets são servidos por `carloseduardofurlan.github.io`; requisições de negócio usam `praclinic-api.onrender.com/api`. O backend permite exatamente a origem `https://carloseduardofurlan.github.io`, sem o caminho do repositório. Bearer é enviado em headers, sem cookies de sessão.
+Assets são servidos principalmente por `praclinic.vercel.app`, ou por `carloseduardofurlan.github.io` na publicação secundária; requisições de negócio usam `praclinic-api.onrender.com/api`. O backend permite exatamente essas duas origens HTTPS, sem wildcard ou caminho do repositório. Bearer é enviado em headers, sem cookies de sessão.
 
 O serviço hospedado pode sofrer cold start. O timeout de 120 segundos não garante resposta em todos os cenários; ao expirar, a UI informa o problema e permite tentativa manual. Tokens, senhas e respostas sensíveis não devem ser gravados em relatórios, screenshots, traces ou Git. Dados HML/FICTÍCIO são identificados como descartáveis e não representam atendimento real.
