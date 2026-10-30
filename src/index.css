@@ -40,6 +40,10 @@
     @apply bg-background text-text antialiased;
   }
 
+  button:not(:disabled):not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 3px;
@@ -72,4 +76,9 @@
       animation-iteration-count: infinite !important;
     }
   }
+}
+
+/* Prevalece também sobre cursor-pointer de utilities em controles indisponíveis. */
+button:disabled, button[aria-disabled="true"] {
+  cursor: default;
 }
