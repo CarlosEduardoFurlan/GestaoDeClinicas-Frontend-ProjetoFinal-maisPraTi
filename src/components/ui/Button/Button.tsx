@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "../../../lib/utils";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "../Spinner/Spinner";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "outline" | "ghost" | "danger" | "success";
@@ -35,7 +35,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(baseStyles, variants[variant], sizes[size], className)}
         {...props}
       >
-        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {loading && <Spinner size="sm" className="mr-2 shrink-0 text-current" />}
         {children}
       </button>
     );
