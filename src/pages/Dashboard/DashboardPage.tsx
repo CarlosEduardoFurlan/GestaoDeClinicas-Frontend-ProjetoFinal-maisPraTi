@@ -2,7 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
-import { Spinner } from '../../components/ui/Spinner/Spinner';
+import { LoadingContent } from '../../components/ui/Loading/LoadingContent';
 import { StatusBadge } from '../../components/appointments/StatusBadge';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
@@ -29,7 +29,7 @@ export function DashboardPage() {
       <div><h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1><p className="text-slate-500 mt-1">Visão geral dos atendimentos de hoje</p></div>
       <div className="flex flex-wrap gap-3 items-center"><div className="flex items-center gap-2 bg-blue-50 text-primary px-4 py-2 rounded-full text-sm font-semibold"><Calendar className="w-4 h-4" /><span data-local-date={localDate(now)}>Hoje, {new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(now)}</span></div><Button variant="outline" disabled={data.loading} onClick={() => { setNow(new Date()); void data.refresh(); }}>Atualizar</Button>{canReadPatients && <Button className="rounded-full" onClick={() => navigate('/consultations')}>+ Nova Consulta</Button>}</div>
     </div>
-    {data.loading ? <div role="status" className="p-10 flex justify-center gap-3"><Spinner />Carregando dashboard...</div> : data.loadError ? <div className="bg-white rounded-xl p-6 space-y-3"><p role="alert" className="text-red-700">{data.loadError}</p><Button variant="outline" onClick={() => void data.refresh()}>Tentar novamente</Button></div> : <>
+    <LoadingContent loading={data.loading} error={data.loadError} label="Carregando dashboard..." errorFallback={<div className="bg-white rounded-xl p-6 space-y-3"><p role="alert" className="text-red-700">{data.loadError}</p><Button variant="outline" onClick={() => void data.refresh()}>Tentar novamente</Button></div>}><>
       <div className={`grid grid-cols-1 ${canReadPatients ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6`}>{metrics.map(({ key, label, value, suffix, Icon }) => <section key={key} aria-label={label} className="bg-white rounded-[1.25rem] p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
         <div className="flex justify-between items-start"><h2 className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">{label}</h2><div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center"><Icon className="w-4 h-4" /></div></div><div className="mt-4 flex items-baseline gap-2"><span data-metric={key} className="text-4xl font-extrabold text-slate-900 tracking-tight">{value}</span><span className="text-sm text-slate-500 font-medium">{suffix}</span></div>
       </section>)}</div>
@@ -46,6 +46,6 @@ export function DashboardPage() {
           {weekOffset !== 0 && <Button variant="ghost" size="sm" className="mt-4" onClick={() => setWeekOffset(0)}>Semana atual</Button>}
         </section>
       </div>
-    </>}
+    </></LoadingContent>
   </div>;
 }

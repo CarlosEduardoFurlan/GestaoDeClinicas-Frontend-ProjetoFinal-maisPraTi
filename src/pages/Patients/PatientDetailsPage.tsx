@@ -2,7 +2,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Edit2, User, Calendar, ClipboardList } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
-import { Spinner } from '../../components/ui/Spinner/Spinner';
+import { LoadingContent } from '../../components/ui/Loading/LoadingContent';
 import { useAuth } from '../../contexts/AuthContext';
 import { PatientService } from '../../services/patient.service';
 import { errorDescription } from '../../lib/api-error';
@@ -29,7 +29,7 @@ export function PatientDetailsPage() {
   }, [id, revision]);
   return <div className="max-w-[1600px] mx-auto space-y-6">
     <Link to="/patients" className="flex items-center text-sm font-medium text-slate-500 hover:text-primary w-fit"><ArrowLeft className="w-4 h-4 mr-1.5" />Pacientes{patient && <span className="text-slate-900 ml-1 font-bold">/ {patient.name}</span>}</Link>
-    {loading ? <div role="status" className="p-10 flex justify-center gap-3"><Spinner />Carregando paciente...</div> : loadError ? <div className="bg-white rounded-xl p-6 space-y-3"><h1 className="text-xl font-bold">Não foi possível carregar paciente</h1><p role="alert" className="text-red-700">{loadError}</p><Button variant="outline" onClick={() => setRevision((value) => value + 1)}>Tentar novamente</Button></div> : patient && <>
+    <LoadingContent key={id} loading={loading} error={loadError} label="Carregando paciente..." errorFallback={<div className="bg-white rounded-xl p-6 space-y-3"><h1 className="text-xl font-bold">Não foi possível carregar paciente</h1><p role="alert" className="text-red-700">{loadError}</p><Button variant="outline" onClick={() => setRevision((value) => value + 1)}>Tentar novamente</Button></div>}>{patient && <>
       <div className="bg-white rounded-[1.25rem] p-6 shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between gap-6">
         <div className="flex items-center gap-5"><div className="w-20 h-20 rounded-full bg-blue-50 text-primary flex items-center justify-center font-bold text-2xl shrink-0">{patient.name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('')}</div><div><h1 className="text-2xl font-extrabold text-slate-900 break-words">{patient.name}</h1><p className="text-sm text-slate-500 mt-2">CPF: {patient.cpf}</p><p className="text-sm text-slate-500">Nascimento: {patient.dateBirth.split('-').reverse().join('/')}</p><p className="text-sm text-slate-500">Celular: {patient.cellPhone}</p></div></div>
         {canWrite && <Button variant="outline" onClick={() => setEditing(true)} className="self-start gap-2 rounded-xl"><Edit2 className="w-4 h-4" />Editar Dados</Button>}
@@ -49,6 +49,6 @@ export function PatientDetailsPage() {
           activeTab === 'consultas' ? <PatientAppointments key={patient.id} patientId={patient.id} /> : canReadRecords && <PatientClinicalRecords key={patient.id} patientId={patient.id} />}
       </div>
       {canWrite && editing && <PatientFormModal key={patient.id} patient={patient} onClose={() => setEditing(false)} onSaved={(saved) => { setPatient(saved); setEditing(false); }} />}
-    </>}
+    </>}</LoadingContent>
   </div>;
 }

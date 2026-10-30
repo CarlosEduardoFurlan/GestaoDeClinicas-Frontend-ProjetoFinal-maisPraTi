@@ -1,3 +1,4 @@
+import { DelayedLoading } from '../ui/Loading/DelayedLoading';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Modal } from '../overlay/Modal/Modal';
 import { Button } from '../ui/Button/Button';
@@ -78,7 +79,7 @@ export function AppointmentFormModal({ schedules, appointments, initialSlot, ini
           <textarea id="appointment-notes" value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm" />
         </div>
       </fieldset>
-      {optionsLoading && <p role="status">Carregando pacientes e profissionais...</p>}
+      <DelayedLoading active={optionsLoading} size="sm" className="text-sm text-slate-500">Carregando pacientes e profissionais...</DelayedLoading>
       {optionsError && <div><p role="alert" className="text-red-700">{optionsError}</p><Button type="button" variant="outline" onClick={() => { patients.retry(); professionals.retry(); }}>Recarregar cadastros</Button></div>}
       {!optionsLoading && !optionsError && (!patients.items.length || !professionals.items.length) && <p className="text-sm text-slate-500">Cadastre paciente e profissional antes de agendar.</p>}
       {loadError && <div><p role="alert" className="text-red-700">{loadError}</p><Button type="button" variant="outline" disabled={pending} onClick={() => void refresh()}>Atualizar disponibilidade</Button></div>}

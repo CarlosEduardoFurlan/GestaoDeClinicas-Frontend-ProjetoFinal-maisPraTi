@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
-import { Spinner } from '../../components/ui/Spinner/Spinner';
+import { LoadingContent } from '../../components/ui/Loading/LoadingContent';
 import { Modal } from '../../components/overlay/Modal/Modal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -135,9 +135,7 @@ export function SpecialtiesPage() {
           </div>
         </div>
 
-        {loading ? <div className="p-10 flex items-center justify-center gap-3" role="status"><Spinner />Carregando especialidades...</div>
-          : loadError ? <div className="p-6 space-y-3"><p role="alert" className="text-red-700">{loadError}</p><Button variant="outline" onClick={() => setRetry((value) => value + 1)}>Tentar novamente</Button></div>
-          : <>
+        <LoadingContent loading={loading} error={loadError} label="Carregando especialidades..." errorFallback={<div className="p-6 space-y-3"><p role="alert" className="text-red-700">{loadError}</p><Button variant="outline" onClick={() => setRetry((value) => value + 1)}>Tentar novamente</Button></div>}><>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead><tr className="bg-slate-50/50 border-b border-slate-100">
@@ -152,15 +150,15 @@ export function SpecialtiesPage() {
                     <td className="px-6 py-5 font-bold text-slate-900">{item.name}</td>
                     <td className="px-6 py-5 text-sm text-slate-600">{item.description ?? '—'}</td>
                     {canWrite && <td className="px-6 py-5 text-right"><div className="flex justify-end gap-2">
-                      <button type="button" disabled={pending} onClick={() => openForm(item)} aria-label={`Editar ${item.name}`} title="Editar Especialidade" className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><Edit2 className="w-4 h-4" /></button>
-                      <button type="button" disabled={pending} onClick={() => { setFormError(null); setDeleting(item); }} aria-label={`Excluir ${item.name}`} title="Excluir Especialidade" className="p-2 text-slate-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                      <button type="button" disabled={loading || pending} onClick={() => openForm(item)} aria-label={`Editar ${item.name}`} title="Editar Especialidade" className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><Edit2 className="w-4 h-4" /></button>
+                      <button type="button" disabled={loading || pending} onClick={() => { setFormError(null); setDeleting(item); }} aria-label={`Excluir ${item.name}`} title="Excluir Especialidade" className="p-2 text-slate-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                     </div></td>}
                   </tr>)}
                 </tbody>
               </table>
             </div>
             <div className="px-6 py-4 border-t border-slate-100 text-sm text-slate-500">Exibindo {filtered.length} de {specialties.length} registros</div>
-          </>}
+          </></LoadingContent>
       </div>
 
       {canWrite && <Modal isOpen={isModalOpen} onClose={() => { if (!pending) setIsModalOpen(false); }} title={editing ? 'Editar Especialidade' : 'Nova Especialidade'}>
