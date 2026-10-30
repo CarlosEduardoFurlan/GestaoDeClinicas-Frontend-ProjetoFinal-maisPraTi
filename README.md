@@ -42,10 +42,11 @@ Lint executa `tsc --noEmit`. Os smokes isolados não precisam de banco/backend n
 
 ## Produção
 
-- Frontend: https://carloseduardofurlan.github.io/GestaoDeClinicas-Frontend-ProjetoFinal-maisPraTi/
+- Frontend principal na Vercel: https://praclinic.vercel.app
 - API: https://praclinic-api.onrender.com/api
-- GitHub Pages usa GitHub Actions e deploy automático da main. `VITE_API_URL` é variável pública do environment `github-pages`.
-- O fallback 404.html permite rotas profundas. O timeout HTTP é 120 segundos para acomodar cold starts, sem retry automático ou keepalive.
+- GitHub Pages permanece como publicação secundária/compatibilidade: https://carloseduardofurlan.github.io/GestaoDeClinicas-Frontend-ProjetoFinal-maisPraTi/
+- Ambas publicam automaticamente a main. A Vercel usa Vite e fallback SPA via `vercel.json`; Pages usa GitHub Actions e `404.html`. `VITE_API_URL` é pública e definida em Production na Vercel e no environment `github-pages`.
+- O timeout HTTP é 120 segundos para acomodar cold starts, sem retry automático ou keepalive.
 
 ## Arquitetura
 
