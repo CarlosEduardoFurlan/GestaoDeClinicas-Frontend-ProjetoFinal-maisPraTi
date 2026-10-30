@@ -65,5 +65,11 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+
+    /* Mantém o progresso perceptível sem reativar outras animações. */
+    .app-spinner {
+      animation-duration: 4s !important;
+      animation-iteration-count: infinite !important;
+    }
   }
 }
