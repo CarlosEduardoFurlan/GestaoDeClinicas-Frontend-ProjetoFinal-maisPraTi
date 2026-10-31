@@ -48,6 +48,43 @@ Lint executa `tsc --noEmit`. Os smokes isolados não precisam de banco/backend n
 - Ambas publicam automaticamente a main. A Vercel usa Vite e fallback SPA via `vercel.json`; Pages usa GitHub Actions e `404.html`. `VITE_API_URL` é pública e definida em Production na Vercel e no environment `github-pages`.
 - O timeout HTTP é 120 segundos para acomodar cold starts, sem retry automático ou keepalive.
 
+## Acesso de demonstração
+
+Estas contas são exclusivamente fictícias e foram criadas para avaliação acadêmica do +PraClinic. Não representam usuários ou pacientes reais. As credenciais abaixo são intencionalmente públicas e pertencem somente a esse ambiente de demonstração.
+
+- Aplicação: https://praclinic.vercel.app
+- API: https://praclinic-api.onrender.com
+
+| Perfil | Usuário | Senha |
+| --- | --- | --- |
+| Administrador | admin.demo@praclinic.invalid | AdminDemo!26 |
+| Recepção | recepcao.demo@praclinic.invalid | RecepcaoDemo!26 |
+| Profissional — Clínica Geral | helena.demo@praclinic.invalid | HelenaDemo!26 |
+| Profissional — Cardiologia | rafael.demo@praclinic.invalid | RafaelDemo!26 |
+| Profissional — Dermatologia | camila.demo@praclinic.invalid | CamilaDemo!26 |
+| Profissional — Pediatria | andre.demo@praclinic.invalid | AndreDemo!26 |
+
+## O que testar
+
+### Administrador
+
+- Dashboard global, usuários, pacientes, profissionais e especialidades.
+- Agenda, agendamento e transições permitidas das consultas.
+- Leitura global dos prontuários fictícios.
+
+### Recepção
+
+- Dashboard, pacientes, agenda e consultas.
+- Profissionais e especialidades em leitura.
+- Agendar, confirmar e cancelar consultas nos estados permitidos.
+- Usuários e prontuários ficam bloqueados para esse perfil.
+
+### Profissional
+
+- Dashboard, agenda e consultas próprios; abertura de horários próprios.
+- Iniciar e concluir consultas próprias, criar e editar prontuários próprios.
+- Especialidades em leitura. Pacientes globais, profissionais globais e usuários ficam bloqueados.
+
 ## Arquitetura
 
 [Arquitetura, sessão, permissões, fluxos e operação](docs/ARQUITETURA.md).
