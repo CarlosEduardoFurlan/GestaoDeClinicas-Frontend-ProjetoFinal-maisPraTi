@@ -196,6 +196,8 @@ Em rota profunda, GitHub Pages responde o documento 404.html com HTTP 404, mas e
 
 ## 17. Integração e operação
 
+O ambiente público possui contas de demonstração para ADMIN, RECEPTIONIST e PROFESSIONAL. As credenciais acadêmicas estão disponíveis no [README](../README.md#acesso-de-demonstração). Os dados são fictícios; a carga foi administrativa e não existe seed automático no deploy.
+
 Assets são servidos principalmente por `praclinic.vercel.app`, ou por `carloseduardofurlan.github.io` na publicação secundária; requisições de negócio usam `praclinic-api.onrender.com/api`. O backend permite exatamente essas duas origens HTTPS, sem wildcard ou caminho do repositório. Bearer é enviado em headers, sem cookies de sessão.
 
 O serviço hospedado pode sofrer cold start. O timeout de 120 segundos não garante resposta em todos os cenários; ao expirar, a UI informa o problema e permite tentativa manual. Tokens, senhas e respostas sensíveis não devem ser gravados em relatórios, screenshots, traces ou Git. Dados HML/FICTÍCIO são identificados como descartáveis e não representam atendimento real.
